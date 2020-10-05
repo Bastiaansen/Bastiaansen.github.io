@@ -1,0 +1,338 @@
+body{
+    margin: 0 auto;
+	width: 100%;
+	max-width: 2000px;
+}
+
+.preload * {
+  -webkit-transition: none !important;
+  -moz-transition: none !important;
+  -ms-transition: none !important;
+  -o-transition: none !important;
+}
+
+
+section{
+	width: 89%;
+	margin: auto;
+}
+
+
+h1{
+	text-align: center;
+	font-size: 2em;
+	background-color: darkblue;
+	font-weight: bold;
+	color: white;
+	padding: 2px 2px;
+	box-shadow: rgba(0,0,0,0.5) 0 3px 3px;
+	border: 1px solid grey;
+	font-family: consolas, courier, monospace;
+	text-transform: uppercase;
+	margin-top: 1.25em;
+}
+
+h2{
+	padding: 0 2em;
+}
+
+.sticky{
+	position: fixed;
+	top: 0;
+	width: 100%;
+	z-index: 2;
+	max-width: 2000px;
+}
+
+.sticky + .content{
+	padding-top: 102px;
+}
+
+#topButton{
+	display: none; /* Hidden by default */
+    position: fixed; /* Fixed/sticky position */
+    bottom: 15px; /* Place the button at the bottom of the page */
+    right: 15px; /* Place the button 30px from the right */
+    z-index: 99; /* Make sure it does not overlap */
+    border: none; /* Remove borders */
+    outline: none; /* Remove outline */
+    background-color: darkblue; /* Set a background color */
+    color: white; /* Text color */
+    cursor: pointer; /* Add a mouse pointer on hover */
+    padding: 15px; /* Some padding */
+    border-radius: 10px; /* Rounded corners */
+    font-size: 18px; /* Increase font size */
+}
+
+#topButton:hover {
+    background-color: #555; /* Add a dark-grey background on hover */
+}
+
+/* Upper Menu */
+
+nav.menu{
+	width: 100%;
+	overflow: hidden;
+	background-color: darkblue;
+}
+
+nav.menu div{
+	font-size: 3em;
+	text-align: center;
+	width: 100%;
+}
+
+nav.menu a{
+	width: 16.66667%;
+	font-size: 1.8em;
+	font-size: 1.8vw;
+}
+
+nav.menu a, nav.menu div{
+	background-color: inherit;
+	float: left;
+	border: none;
+	outline: none;
+	padding: 10 0;
+	font-weight: bold;
+	transition: 1s;
+	color: white;
+	text-align: center;
+	text-decoration: none;
+	text-transform: uppercase;
+	font-family: consolas, courier, monospace;
+}
+
+nav.menu a:hover{
+	background-color: white;
+	color: darkblue;
+}
+
+nav.menu a.active{
+	background-color: white;
+	color: blue;
+}
+
+nav.menu a.currentMenu{
+	background-color: white;
+	color: blue;
+}
+
+/* General-tab */
+.card {
+    box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+    width: 22%;
+    border-radius: 5px;
+	display: inline-block;
+	float: left;
+	padding: 10 10;
+}
+
+img.photo {
+    border-radius: 5px 5px 0 0;
+	width: 100%;
+	max-width: 250px;
+	display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+div.adress{
+	width: 17%;
+	display: inline-block;
+	padding: 0 0 0 10;
+	margin-left: 1em;
+    margin-top: -1em;
+}
+
+div.interests{
+	width: 45%;
+	display: inline-block;
+	float: right;
+	padding: 0 0 0 10;
+	margin-left: 1em;
+	margin-top: -1em;
+}
+
+/* Publications */
+div.papers{
+	width: 97%;
+	margin: auto;
+}
+
+div.paper{
+	background-color: white;
+	color: darkblue;
+	border-radius: 5px;
+	border: 1px solid darkblue;
+	box-shadow: 0 4px 8px 0 darkblue;
+	overflow: hidden;
+	cursor: pointer;
+	transition: 1s;
+	margin-top: 0.75em;
+}
+
+
+.paperPanel {
+    padding: 0 18px;
+    background-color: white;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.2s ease-out;
+	border-radius: 0px 0px 15px 15px;
+	border: none;
+	box-shadow: 0 4px 8px 0 darkblue;
+	width: 95%;
+	margin: auto;
+}
+
+
+.paper:after {
+    content: '\002B';
+    color: darkblue;
+    font-weight: bold;
+    float: right;
+    margin: 5px 10px 5px 10px;
+	text-align: right;
+	font-size: 2em;
+}
+
+.paperActive:after {
+    content: "\2212";
+}
+
+
+div.paper div{
+	padding: 0.25em 0;
+}
+
+div.paperTitle{
+	display: inline-block;
+	float: left;
+	width: 80%;
+}
+
+div.paperLinks{
+	display: inline-block;
+	width: 15%;
+}
+
+div.paperPlus{
+	display: inline-block;
+	float: right;
+	width: 5%;
+	font-size: 1.5em;
+	text-align: right;
+}
+
+div.paper span.title{
+	font-weight: bold;
+	font-size: 1.1em;
+	padding-left: 10;
+	display: inline-block;
+}
+div.paper span.authors{
+	padding-left: 15;
+    margin: 0;
+    display: inline-block;
+}
+
+span.journal{
+	font-style: italic;
+}
+
+div.abstract{
+	width: 75%;
+	display: inline-block;
+	float: left;
+}
+
+div.abstract p{
+	font-size: 0.75em;
+	text-align: justify;
+    text-justify: inter-word;
+}
+
+div.abstractImage{
+	width: 25%;
+	display: inline-block;
+	float: right;
+}
+
+div.abstractImage img{
+	width: 100%;
+	padding: 10;
+}
+
+div.paperAdditionalStuff{
+	width: 100%;
+	border-top: 0.5px solid darkblue;
+	display: inline-block;
+	font-size: 0.75em;
+}
+
+div.TA{
+	width: 95%;
+	background-color: white;
+	color: darkblue;
+	border-radius: 5px;
+	border: 2px solid darkblue;
+	box-shadow: 0 4px 8px 0 darkblue;
+	overflow: hidden;
+	margin: auto;
+	margin-bottom: 1em;
+}
+
+th, td {
+    padding: 0 15px;
+	text-align: left;
+	color: darkblue;
+	font-weight: normal;
+}
+
+
+
+
+
+/* Organisation */
+div.events{
+	width: 97%;
+	margin: auto;
+}
+
+div.event{
+	background-color: white;
+	color: darkblue;
+	border-radius: 5px;
+	border: 1px solid darkblue;
+	box-shadow: 0 4px 8px 0 darkblue;
+	overflow: hidden;
+	margin-top: 0.75em;
+}
+
+
+
+div.event div{
+	padding: 0.25em 0;
+}
+
+
+div.event span.title{
+	font-weight: bold;
+	font-size: 1.1em;
+	padding: 20;
+}
+div.event span.authors{
+	padding: 25;
+}
+
+
+@media only screen and (max-width: 768px) {
+    /* For mobile phones: */
+    div.adress, div.card, div.interests{
+		width: 100%;
+	}
+	nav.menu a{
+		font-size: 0.6em;
+	}
+}
