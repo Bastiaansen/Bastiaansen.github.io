@@ -1,0 +1,58 @@
+p            { margin: 0; padding: 0; font-family: verdana, helvetica, arial }
+
+a            { text-decoration: none }
+a:link {color: rgb(130,36,54)}
+a:visited {color: rgb(130,36,54)}
+a:hover {color: rgb(130,36,54)}
+a:focus {color: rgb(130,36,54)}
+a:active {color: rgb(130,36,54)}
+
+body {background: rgb(255,252,217); color: rgb(0,0,0); margin: 7; font-family: verdana, helvetica, arial }
+table        { margin: 0; padding: 0; border-collapse: collapse; border: 0;
+height: 100%;  width: 100%; border-spacing: 0}
+td           { border: 0; padding:0; border-collapse: collapse}
+hr {width: 100%; color: rgb(100,100,205); padding: 0}
+
+td.vr {padding: 3;}
+ 
+td.side {background: rgb(130,36,54); color: rgb(250,250,240); text-align: center; padding:
+5; padding-top:10;  border-collapse: collapse; border: 0; width: 0; margin: 0}
+div.side p {padding:0;padding-left:7; padding-right: 7}
+div.side p.super {text-align: left;padding-left: 6; padding-bottom:5; margin:0}
+div.side div.sub p {text-align: right; padding-top :2; margin-right: 1;}
+div.side p.feedback {font-size: 70%; padding:5}
+div.side a:link {color: rgb(250,250,240)}
+div.side a:visited {color: rgb(250,250,240)}
+
+
+img#rings {width: 70; border: 0; margin-top: 10}
+img#griff {width: 70; border: 0; margin-bottom: 5}
+img#flag {height: 24; border: 0} 
+
+td.top { background: rgb(130,36,54); color: rgb(250,250,240); font-family: verdana, helvetica, arial ; width: 100%;
+height: 1%}
+div.top p {font-size: 150%; margin: 0; padding: 8; padding-left: 12; padding-right: 10; font-family: verdana, helvetica, arial }
+      
+td.main {padding: 5; padding-top: 8; width: 100%}
+div.main p {padding:0; margin: 0}
+      
+ul  { margin:0; margin-left: 25; margin-top: 3; margin-bottom: 5; padding:0 }
+ol  { margin:0; margin-left: 25; margin-top: 3; margin-bottom: 5; padding:0 }
+li  { margin:0; margin-top: 3; margin-bottom: 3; padding:0}
+
+dl  { margin-left: 0; margin-right: 0; margin-top: 3; margin-bottom: 2 }
+dt  { font-weight: bold }
+dd  { margin-left: 25; margin-right: 0; margin-top: 0; margin-bottom: 3 }
+
+div.main table {margin-top:3; margin-bottom:6; height: 0%}
+div.main td {padding-top:3}
+div.main p.bold {font-weigth: bold; font-size: 120%; padding-bottom:3; padding-top:5}
+
+
+h2 {margin-bottom: 15; margin-top: 10}
+h3 {margin-bottom: 10; margin-top: 15}
+
+div.spaceparagraphs p { margin: 0; padding: 0; padding-bottom: 7}
+
+
+
