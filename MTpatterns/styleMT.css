@@ -1,0 +1,157 @@
+body{
+    margin: 0 auto;
+	width: 100%;
+	max-width: 1500px;
+}
+
+.color1 {color: #132506;}
+.color2 {color: #0e5e30;}
+.color3 {color: #bac700;}
+.color4 {color: #fffa20;}
+.color5 {color: #fffb82;}
+
+.preload * {
+  -webkit-transition: none !important;
+  -moz-transition: none !important;
+  -ms-transition: none !important;
+  -o-transition: none !important;
+}
+
+
+section{
+	width: 89%;
+	margin: auto;
+    color: #132506;
+}
+
+
+h1{
+	text-align: center;
+	font-size: 2em;
+	background-color: #0e5e30;
+	font-weight: bold;
+	color:  #fffa20;
+	padding: 2px 2px;
+	box-shadow: rgba(0,0,0,0.5) 0 3px 3px;
+	border: 1px solid grey;
+	font-family: consolas, courier, monospace;
+	text-transform: uppercase;
+	margin-top: 1.25em;
+}
+
+h2{
+	padding: 0 2em;
+    clear:both;
+}
+
+div.MToverview{
+    width: 93%;
+    margin: auto;
+	display: flex;
+	align-items: center;
+}
+
+div.abstractMT{
+    width: 50%;
+    
+    
+	display: inline-block;
+	float: left;
+    
+    
+	text-align: justify;
+    text-justify: inter-word;
+    color:  #132506;
+    
+}
+
+div.imgMT{
+    width: 50%;
+    display: inline-block;
+	float: right;    
+    margin: auto;
+}
+
+
+div.imgMT img{
+	width: 100%;
+    display: inline-block;
+	padding-left: 20;
+    margin: auto;
+}
+
+/* Publications */
+div.papers{
+	width: 97%;
+	margin: auto;
+}
+
+div.paper{
+	background-color: #fffb82;
+	color: #132506;
+	border-radius: 5px;
+	border: 1px solid #0e5e30;
+	box-shadow: 0 4px 8px 0 #bac700;
+	overflow: hidden;
+	margin-top: 0.75em;
+}
+
+div.paper div{
+	padding: 0.25em 0;
+}
+
+div.paperTitle{
+	display: inline-block;
+	float: left;
+	width: 80%;
+}
+
+div.paperLinks{
+	display: inline-block;
+	width: 15%;
+}
+
+
+div.paper span.title{
+	font-weight: bold;
+	font-size: 1.1em;
+	padding-left: 10;
+	display: inline-block;
+}
+div.paper span.authors{
+	padding-left: 15;
+    margin: 0;
+    display: inline-block;
+}
+
+span.journal{
+	font-style: italic;
+}
+
+div.abstract{
+	width: 75%;
+	display: inline-block;
+	float: left;
+}
+
+div.abstract p{
+	font-size: 0.75em;
+	text-align: justify;
+    text-justify: inter-word;
+}
+
+div.abstractImage{
+	width: 25%;
+	display: inline-block;
+	float: right;
+}
+
+div.abstractImage img{
+	width: 100%;
+	padding: 10;
+}
+
+
+
+
+
