@@ -146,12 +146,11 @@ div.adress{
 }
 
 div.interests{
-	width: 45%;
+	width: 35%;
 	display: inline-block;
-	float: right;
 	padding: 0 0 0 10;
-	margin-left: 1em;
-	margin-top: -1em;
+	margin-left: auto;
+	margin-top: auto;
 }
 
 /* Publications */
