@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Research Group Members</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Use a system serif font for a classic academic feel -->
+    <style>
+        body {
+            font-family: serif; /* Default to system serif font */
+            background-color: #ffffff; /* Clean white background */
+            color: #1f2937;
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+
+    <!-- Combined Header: Minimal Style -->
+    <header class="bg-gray-50 border-b border-gray-200">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            
+            <!-- NEW: Back Link to bastiaansen.github.io -->
+            <div class="flex justify-end mb-4">
+                <a href="https://bastiaansen.github.io" class="flex items-center text-sm text-gray-600 hover:text-indigo-700 transition duration-150">
+                    <!-- SVG Arrow Icon -->
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                    back to bastiaansen.github.io
+                </a>
+            </div>
+
+            <!-- Existing: Team Title and Sub-Navigation -->
+            <h1 class="text-3xl font-normal text-indigo-800 border-b pb-2 mb-4">
+                The Team
+            </h1>
+            <nav class="space-x-4 text-sm text-gray-600">
+                <a href="#current" class="hover:text-indigo-700 transition duration-150 border-r pr-4">Current Members</a>
+                <a href="#alumni" class="hover:text-indigo-700 transition duration-150">Previous Members</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+
+        <!-- Introduction Section -->
+        <section class="mb-12">
+            <h2 class="text-4xl font-normal text-gray-800 mb-4">Team Members</h2>
+            <p class="text-gray-700 max-w-3xl">
+            </p>
+        </section>
+        
+        <!-- NEW PI Section -->
+        <section id="pi-member" class="mb-12">
+            <h3 class="text-2xl font-normal text-indigo-700 border-b border-indigo-400 pb-1 mb-6">
+                Principal Investigator
+            </h3>
+            <div id="pi-container">
+                <!-- PI Card will be rendered here -->
+            </div>
+        </section>
+        <!-- END NEW PI Section -->
+
+        <!-- Current Members Section -->
+        <section id="current" class="mb-16">
+            <h3 class="text-2xl font-normal text-indigo-700 border-b border-indigo-400 pb-1 mb-6">
+                Current PhD Candidates and postdocs
+            </h3>
+
+            <div id="current-members-grid" class="space-y-6">
+                <!-- Member List Template (Current) -->
+            </div>
+        </section>
+
+        <!-- Alumni Section -->
+        <section id="alumni" class="mb-16">
+            <h3 class="text-2xl font-normal text-indigo-700 border-b border-indigo-400 pb-1 mb-6">
+                Previous PhD Candidates and postdocs
+            </h3>
+            <p class="text-gray-700 mb-6 text-sm"></p>
+
+            <div id="alumni-members-list" class="space-y-4">
+                <!-- Alumni List Template -->
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-gray-200 mt-12 py-6 text-gray-600 text-sm">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <p></p>
+        </div>
+    </footer>
+
+    <script>
+        // --- Mock Data for Members ---
+        const groupMembers = [
+            // Current Members (Use real data here!)
+            {
+                name: "Dr. Robbin Bastiaansen",
+                role: "Assistant Professor",
+                status: "Current",
+                focus: "Mathematical Modeling of Climate and Ecosystem Dynamics",
+                link: "https://bastiaansen.github.io",
+                img_url: "robbin.gif" // Smaller image
+            },
+            {
+                name: "David Kok",
+                role: "PhD Candidate (2018-..)",
+                status: "Current",
+                supervision: "Main supervisor: Arjen Doelman",
+                focus: "Existence and stability of stripes in a singularly perturbed system through the transition from fast homoclinic to double heteroclinic",
+                link: "https://www.universiteitleiden.nl/medewerkers/david-kok#tab-1",
+                img_url: "team/David_Kok.jpg"
+            },
+            {
+                name: "Sjoerd Terpstra",
+                role: "PhD Candidate (2022-..)",
+                status: "Current",
+                supervision: "Main supervisor: Anna von der Heydt; other promotor: Henk Dijkstra",
+                focus: "Tipping in climate system; interacting tipping elements",
+                link: "https://www.uu.nl/medewerkers/STerpstra",
+                img_url: "team/Sjoerd_Terpstra.jpg"
+            },
+            {
+                name: "Fleur Vrouwenvelder-Slegers",
+                role: "PhD Candidate (2023-..)",
+                status: "Current",
+                supervision: "Main supervisor: Edwin Pos; promotor: Jason Frank",
+                focus: "Dynamic extension of Maximum Entropy Formalism",
+                link: "https://www.uu.nl/medewerkers/FSlegers",
+                img_url: "team/Fleur_Slegers.jpg"
+            },
+            {
+                name: "Paul Sanders",
+                role: "PhD Candidate (2023-..)",
+                status: "Current",
+                supervision: "promotores: Jason Frank, Anna von der Heydt",
+                focus: "Extending Early Warning Signs based on the theory of spatial pattern formation",
+                link: "https://www.uu.nl/medewerkers/PASanders",
+                img_url: "team/Paul_Sanders.jpg"
+            },
+            {
+                name: "Casey Patrizio",
+                role: "postdoc (2024-..)",
+                status: "Current",
+                supervision: "Co-Supervisor: Henk Dijkstra, Anna von der Heydt",
+                focus: "The role of ocean variability aross a weide range of time scales",
+                link: "https://www.caseypatrizio.com/",
+                img_url: "team/Casey_Patrizio.jpg"
+            },
+            {
+                name: "Reyk Börner",
+                role: "postdoc (2025-..)",
+                status: "Current",
+                supervision: "Co-Supervisor: Henk Dijkstra, Anna von der Heydt",
+                focus: "AMOC tipping potential using e.g. edge tracking",
+                link: "https://reykboerner.github.io/",
+                img_url: "team/Reyk_Borner.jpg"
+            },
+            {
+                name: "Aurora Faure Ragani",
+                role: "PhD Candidate (2025-..)",
+                status: "Current",
+                supervision: "promotores: Jason Frank, Henk Dijkstra",
+                focus: "Resilience optimisation in spatially extended systems",
+                link: "https://www.uu.nl/medewerkers/AFaureRagani",
+                img_url: "team/Aurora_Ragani.jpg"
+            },
+            {
+                name: "Kobe de Maeyer",
+                role: "PhD Candidate (2025-..)",
+                status: "Current",
+                supervision: "Main Supervisor: Arie Staal; promotores: Max Rietkerk, Henk Dijkstra",
+                focus: "AMOC-Amazon interactions with focus on Amazon Rainforest",
+                link: "https://www.uu.nl/medewerkers/KHMdeMaeyer1",
+                img_url: "team/Kobe_de_Maeyer.jpg"
+            },
+            {
+                name: "Chiara Stanchieri",
+                role: "PhD Candidate (2025-..)",
+                status: "Current",
+                supervision: "Co-Supervisor: Henk Dijkstra; other supervisors: Arie Staal, Max Rietkerk",
+                focus: "AMOC-Amazon interactions with focus on AMOC",
+                link: "https://www.uu.nl/medewerkers/CStanchieri",
+                img_url: "team/Chiara_Stanchieri.jpg"
+            }
+        ];
+
+        // --- Utility function to create a member card element ---
+        function createMemberCard(member, isPI = false) {
+            const card = document.createElement('div');
+
+            if (isPI) {
+                // Special styling for PI: distinct background/border, larger font
+                card.className = "flex items-start p-6 border border-indigo-200 rounded-sm bg-indigo-50";
+
+                const imageHtml = member.img_url ?
+                    `<img src="${member.img_url}" alt="Photo of ${member.name}" class="w-24 h-24 object-cover rounded-full mr-6 flex-shrink-0" onerror="this.onerror=null; this.src='https://placehold.co/96x96/4f46e5/ffffff?text=PI';">` :
+                    `<div class="w-24 h-24 bg-indigo-400 rounded-full mr-6 flex-shrink-0 flex items-center justify-center text-lg text-white">PI</div>`;
+
+                card.innerHTML = `
+                    ${imageHtml}
+                    <div>
+                        <a href="${member.link}" class="text-2xl font-semibold text-indigo-800 hover:text-indigo-600 transition duration-150">${member.name}</a>
+                        <p class="text-lg text-gray-700 mt-1">${member.role}</p>
+                        <p class="text-sm text-gray-500 mt-3 italic">${member.focus}</p>
+                    </div>
+                `;
+                return card;
+
+            } else if (member.status === "Current") {
+                // Existing Current Member Card (Minimal List Item)
+                card.className = "flex items-start p-4 border border-gray-100 rounded-sm bg-white hover:bg-gray-50 transition duration-150";
+
+                const imageHtml = member.img_url ?
+                    `<img src="${member.img_url}" alt="Photo of ${member.name}" class="w-20 h-20 object-cover rounded-full mr-4 flex-shrink-0" onerror="this.onerror=null; this.src='https://placehold.co/80x80/9ca3af/ffffff?text=N/A';">` :
+                    `<div class="w-20 h-20 bg-gray-200 rounded-full mr-4 flex-shrink-0 flex items-center justify-center text-sm text-gray-600">No Photo</div>`;
+
+                // Logic to display supervision if available
+                const supervisionHtml = member.supervision
+                    ? `<p class="text-xs text-gray-500 mt-1">${member.supervision}</p>`
+                    : '';
+
+                card.innerHTML = `
+                    ${imageHtml}
+                    <div>
+                        <a href="${member.link}" class="text-xl font-normal text-indigo-800 hover:text-indigo-600 transition duration-150">${member.name}</a>
+                        <p class="text-base text-gray-600">${member.role}</p>
+                        ${supervisionHtml}
+                        <p class="text-sm text-gray-500 mt-1 italic">${member.focus}</p>
+                    </div>
+                `;
+                return card;
+
+            } else if (member.status === "Alumni") {
+                // Alumni Card (Very Minimal List Item)
+                card.className = "border-b border-gray-100 pb-2";
+
+                card.innerHTML = `
+                    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-baseline">
+                        <div class="mb-1 sm:mb-0">
+                            <a href="${member.link}" class="text-lg font-normal text-indigo-800 hover:text-indigo-600 transition duration-150">${member.name}</a>
+                            <span class="text-sm text-gray-500 ml-3 hidden sm:inline">(${member.role})</span>
+                        </div>
+                        <p class="text-sm text-gray-500 italic">${member.focus}</p>
+                    </div>
+                `;
+                return card;
+            }
+        }
+
+        // --- Render members to the DOM ---
+        function renderMembers() {
+            const piContainer = document.getElementById('pi-container');
+            const currentGrid = document.getElementById('current-members-grid');
+            const alumniList = document.getElementById('alumni-members-list');
+
+            if (!piContainer || !currentGrid || !alumniList) {
+                console.error("Target elements not found.");
+                return;
+            }
+
+            // 1. Separate Members: Find the PI and filter the remaining lists
+            const piMember = groupMembers.find(member => member.role.includes("Prof") || member.role.includes("PI"));
+            const nonPiCurrentMembers = groupMembers.filter(member => member.status === "Current" && member !== piMember);
+            const alumniMembers = groupMembers.filter(member => member.status === "Alumni");
+
+            // 2. Render PI
+            if (piMember) {
+                piContainer.appendChild(createMemberCard(piMember, true));
+            }
+
+            // 3. Render Non-PI Current Members
+            nonPiCurrentMembers.forEach(member => {
+                currentGrid.appendChild(createMemberCard(member));
+            });
+
+            // 4. Render Alumni
+            alumniMembers.forEach(member => {
+                alumniList.appendChild(createMemberCard(member));
+            });
+        }
+
+        // Initialize the rendering on load
+        window.onload = renderMembers;
+    </script>
+
+</body>
+</html>
