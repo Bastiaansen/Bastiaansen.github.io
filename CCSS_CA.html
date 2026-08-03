@@ -1,0 +1,1629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CCSS summer school — Cellular Automata simulator</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
+
+:root{
+  --bg:#0B0E14;
+  --panel:#11161F;
+  --panel-2:#171E2B;
+  --line:#28324490;
+  --line-strong:#2A3547;
+  --text:#DCE6F0;
+  --text-dim:#7C8CA3;
+  --amber:#F2C14E;
+  --slate:#233246;
+  --cyan:#4ECFC0;
+  --ember:#E8604C;
+  --violet:#9C87E0;
+  --mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --sans: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+}
+*{box-sizing:border-box;}
+html,body{height:100%;}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:var(--sans);
+  overflow:hidden;
+}
+.app{
+  display:flex;
+  flex-direction:column;
+  height:100vh;
+}
+
+/* ---------- topbar ---------- */
+.topbar{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  padding:10px 20px;
+  border-bottom:1px solid var(--line-strong);
+  flex-shrink:0;
+}
+.topbar h1{
+  font-family:var(--mono);
+  font-size:15px;
+  font-weight:700;
+  letter-spacing:0.02em;
+  margin:0;
+  color:var(--text);
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.topbar h1 .dot{color:var(--cyan);}
+.topbar .spacer{flex:1;}
+.notes-btn{
+  font-family:var(--mono);
+  font-size:11px;
+  color:var(--text-dim);
+  background:var(--panel-2);
+  border:1px solid var(--line-strong);
+  border-radius:4px;
+  padding:6px 10px;
+  cursor:pointer;
+  letter-spacing:.03em;
+}
+.notes-btn:hover{color:var(--text);border-color:var(--cyan);}
+
+/* ---------- workspace ---------- */
+.workspace{
+  display:flex;
+  flex:1;
+  min-height:0;
+}
+.stage{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  padding:16px;
+  min-width:0;
+  position:relative;
+  gap:8px;
+}
+
+.hud-container{
+  width:min(58vh, 62vw, 620px);
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-end;
+  padding:4px 2px;
+  font-family:var(--mono);
+  font-size:12px;
+  color:var(--cyan);
+  letter-spacing:.02em;
+}
+.hud-container .hud-block{display:flex;flex-direction:column;gap:2px;}
+.hud-container .hud-block.right{text-align:right;align-items:flex-end;}
+.hud-container .lab{color:var(--text-dim);font-size:10px;text-transform:uppercase;letter-spacing:.08em;}
+
+.canvas-wrap{
+  position:relative;
+  width:min(58vh, 62vw, 620px);
+  aspect-ratio:1/1;
+  border:1px solid var(--line-strong);
+  border-radius:3px;
+  background:var(--panel-2);
+  box-shadow:0 0 0 1px #000, 0 0 40px -12px rgba(78,207,192,0.25);
+  overflow:hidden;
+}
+#gridCanvas{
+  width:100%;
+  height:100%;
+  display:block;
+  image-rendering:pixelated;
+  cursor:crosshair;
+}
+.scanlines{
+  position:absolute;inset:0;pointer-events:none;
+  background:repeating-linear-gradient(to bottom, rgba(0,0,0,0.12) 0px, rgba(0,0,0,0.12) 1px, transparent 1px, transparent 3px);
+  mix-blend-mode:multiply;
+  opacity:0.35;
+}
+
+.transport{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  font-family:var(--mono);
+  margin-top:4px;
+}
+.transport button{
+  background:var(--panel-2);
+  border:1px solid var(--line-strong);
+  color:var(--text);
+  font-family:var(--mono);
+  font-size:12px;
+  padding:8px 14px;
+  border-radius:4px;
+  cursor:pointer;
+  letter-spacing:.02em;
+}
+.transport button:hover{border-color:var(--cyan);color:var(--cyan);}
+.transport button.primary{
+  background:var(--cyan);
+  color:#06201c;
+  border-color:var(--cyan);
+  font-weight:600;
+}
+.transport button.primary:hover{filter:brightness(1.08);}
+.transport .speedwrap{
+  display:flex;align-items:center;gap:8px;
+  font-size:11px;color:var(--text-dim);
+  margin-left:6px;
+}
+.transport input[type=range]{width:130px;}
+.transport .speedval{color:var(--cyan);width:66px;}
+
+/* ---------- sidebar ---------- */
+.sidebar{
+  width:342px;
+  flex-shrink:0;
+  border-left:1px solid var(--line-strong);
+  background:var(--panel);
+  overflow-y:auto;
+  padding:14px 16px 40px;
+}
+.section{
+  margin-bottom:18px;
+  border-bottom:1px solid var(--line);
+  padding-bottom:16px;
+}
+.section:last-child{border-bottom:none;}
+.section h2{
+  font-family:var(--mono);
+  font-size:10.5px;
+  text-transform:uppercase;
+  letter-spacing:.1em;
+  color:var(--text-dim);
+  margin:0 0 10px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.section h2::before{
+  content:'';
+  width:6px;height:6px;
+  background:var(--cyan);
+  border-radius:1px;
+  display:inline-block;
+}
+.row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:9px;
+}
+.row label{
+  font-size:12.5px;
+  color:var(--text);
+  flex-shrink:0;
+}
+select, input[type=text], input[type=number], input[type=color], textarea{
+  background:var(--panel-2);
+  border:1px solid var(--line-strong);
+  color:var(--text);
+  font-family:var(--mono);
+  font-size:12px;
+  padding:6px 8px;
+  border-radius:4px;
+  outline:none;
+}
+textarea{
+  width:100%;
+  resize:vertical;
+  min-height:70px;
+}
+input[type=color]{
+  padding:1px 2px;
+  width:40px;
+  height:26px;
+  cursor:pointer;
+}
+select{cursor:pointer;}
+input[type=range]{
+  accent-color:var(--cyan);
+  flex:1;
+}
+.numwrap{
+  display:flex;align-items:center;gap:8px;
+  width:100%;
+}
+.numwrap input[type=range]{width:auto;flex:1;}
+.numwrap .val{
+  font-family:var(--mono);
+  font-size:11.5px;
+  color:var(--cyan);
+  width:48px;
+  text-align:right;
+  flex-shrink:0;
+}
+.btnrow{display:flex;gap:8px;margin-top:4px;}
+.btnrow button{
+  flex:1;
+  background:var(--panel-2);
+  border:1px solid var(--line-strong);
+  color:var(--text);
+  font-family:var(--mono);
+  font-size:11px;
+  padding:8px 6px;
+  border-radius:4px;
+  cursor:pointer;
+}
+.btnrow button:hover{border-color:var(--cyan);color:var(--cyan);}
+.mini{font-size:10px;color:var(--text-dim);line-height:1.5;margin:6px 0 0;}
+
+/* ---------- footer / charts ---------- */
+.footer{
+  height:200px;
+  flex-shrink:0;
+  border-top:1px solid var(--line-strong);
+  background:var(--panel);
+  display:flex;
+  flex-direction:column;
+}
+.chartarea{flex:1;padding:10px 14px;min-height:0;display:flex;gap:16px;}
+.chartpane{flex:1;min-width:0;position:relative;}
+.chartpane canvas{width:100%;height:100%;display:block;}
+.legend{
+  position:absolute;
+  top:10px;right:20px;
+  display:flex;gap:16px;
+  font-family:var(--mono);
+  font-size:10px;
+  color:var(--text-dim);
+}
+.legend span{display:flex;align-items:center;gap:5px;}
+.legend i{width:10px;height:2px;display:inline-block;border-radius:2px;}
+
+/* ---------- notes overlay ---------- */
+.overlay{
+  position:fixed;inset:0;
+  background:rgba(6,8,12,0.72);
+  display:none;
+  align-items:center;justify-content:center;
+  z-index:50;
+}
+.overlay.show{display:flex;}
+.notes-card{
+  width:min(560px,90vw);
+  max-height:80vh;
+  overflow-y:auto;
+  background:var(--panel);
+  border:1px solid var(--line-strong);
+  border-radius:8px;
+  padding:22px 24px;
+}
+.notes-card h3{
+  font-family:var(--mono);
+  font-size:13px;
+  color:var(--cyan);
+  margin:18px 0 6px;
+  text-transform:uppercase;
+  letter-spacing:.05em;
+}
+.notes-card h3:first-child{margin-top:0;}
+.notes-card p, .notes-card li{
+  font-size:13px;
+  line-height:1.55;
+  color:var(--text);
+}
+.notes-card ul{margin:6px 0;padding-left:18px;}
+.notes-card .close{
+  float:right;
+  background:none;border:none;color:var(--text-dim);
+  font-size:20px;cursor:pointer;line-height:1;
+}
+
+::-webkit-scrollbar{width:9px;height:9px;}
+::-webkit-scrollbar-track{background:var(--panel);}
+::-webkit-scrollbar-thumb{background:var(--line-strong);border-radius:5px;}
+
+@media (max-width:900px){
+  .sidebar{width:280px;}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="topbar">
+    <h1>
+      CCSS summer school<span class="dot"> — </span>Cellular Automata simulator 
+    </h1>
+    <div class="spacer"></div>
+    <button class="notes-btn" id="notesBtn">? model info</button>
+  </div>
+
+  <div class="workspace">
+    <div class="stage">
+      
+      <div class="hud-container">
+        <div class="hud-block">
+          <span class="lab">steps</span>
+          <span id="hudCount">0</span>
+        </div>
+        <div class="hud-block right">
+          <span class="lab" id="hudOrderLabel">grid average ⟨s⟩</span>
+          <span id="hudOrder">0.000</span>
+        </div>
+      </div>
+
+      <div class="canvas-wrap">
+        <canvas id="gridCanvas"></canvas>
+        <div class="scanlines"></div>
+      </div>
+
+      <div class="transport">
+        <button class="primary" id="playBtn">▶ Run</button>
+        <button id="stepBtn">Step</button>
+        <button id="resetBtn">↺ Reset</button>
+        <div class="speedwrap">
+          <span>speed</span>
+          <input type="range" id="speedSlider" min="0" max="100" value="55">
+          <span class="speedval" id="speedVal">10 /s</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar">
+
+      <div class="section">
+        <h2>Rule &amp; Boundary</h2>
+        <div class="row">
+          <label>Model Type</label>
+          <select id="ruleSelect">
+            <option value="turing">Vegetation Turing Pattern</option>
+            <option value="ising" selected>Simplified Ising CA</option>
+            <option value="schelling">Schelling Segregation</option>
+            <option value="life">Conway's Game of Life</option>
+            <option value="meanfield">Mean-Field Population (Global ρ)</option>
+            <option value="meanfield_local">Mean-Field Population (Local ρ)</option>
+            <option value="custom">Custom Code Rule</option>
+          </select>
+        </div>
+        <div class="row">
+          <label>Boundary</label>
+          <select id="boundSelect">
+            <option value="periodic">Periodic (torus)</option>
+            <option value="fixed">Fixed (open)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Dynamic Model Parameters -->
+      <div class="section" id="turingParams">
+        <h2>Parameters — Vegetation Turing</h2>
+        <div class="numwrap row" style="display:block">
+          <div class="row"><label>Facilitation R1 Radius</label><span class="val" id="r1Val">3</span></div>
+          <input type="range" id="r1Slider" min="1" max="10" value="3">
+        </div>
+        <div class="numwrap row" style="display:block">
+          <div class="row"><label>Growth Weight (w1)</label><span class="val" id="w1Val">1.60</span></div>
+          <input type="range" id="w1Slider" min="10" max="300" value="160">
+        </div>
+        <div class="numwrap row" style="display:block">
+          <div class="row"><label>Inhibition R2 Radius</label><span class="val" id="r2Val">14</span></div>
+          <input type="range" id="r2Slider" min="2" max="30" value="14">
+        </div>
+        <div class="numwrap row" style="display:block">
+          <div class="row"><label>Decay Weight (w2)</label><span class="val" id="w2Val">1.00</span></div>
+          <input type="range" id="w2Slider" min="10" max="300" value="100">
+        </div>
+      </div>
+
+      <div class="section" id="isingParams" style="display:none">
+        <h2>Parameters — Ising CA</h2>
+        <div class="numwrap row" style="display:block">
+          <div class="row"><label>Global Bias H</label><span class="val" id="hVal">0.00</span></div>
+          <input type="range" id="hSlider" min="-100" max="100" value="0">
+        </div>
+        <div class="numwrap row" style="display:block">
+          <div class="row"><label>Flip Prob P (Noise)</label><span class="val" id="pVal">0.05</span></div>
+          <input type="range" id="pSlider" min="0" max="100" value="5">
+        </div>
+      </div>
+
+      <div class="section" id="schellingParams" style="display:none">
+        <h2>Parameters — Segregation</h2>
+        <div class="numwrap row" style="display:block">
+          <div class="row"><label>Similarity Threshold</label><span class="val" id="threshVal">0.40</span></div>
+          <input type="range" id="threshSlider" min="10" max="90" value="40">
+        </div>
+        <p class="mini">Cells desire at least this fraction of matching local neighbors (radius R=1). Unhappy cells flip or relocate.</p>
+      </div>
+
+      <div class="section" id="lifeParams" style="display:none">
+        <h2>Pattern Catalog — Game of Life</h2>
+        <div class="row">
+          <label>Structures</label>
+          <select id="lifePresetSelect" style="max-width:200px;">
+            <optgroup label="Spaceships">
+              <option value="glider">Glider</option>
+              <option value="lwss">Lightweight Spaceship (LWSS)</option>
+              <option value="mwss">Mediumweight Spaceship (MWSS)</option>
+              <option value="hwss">Heavyweight Spaceship (HWSS)</option>
+            </optgroup>
+            <optgroup label="Guns & Generators">
+              <option value="gliderGun">Gosper Glider Gun</option>
+              <option value="simkinGun">Simkin Glider Gun</option>
+            </optgroup>
+            <optgroup label="Oscillators">
+              <option value="blinker">Blinker (p2)</option>
+              <option value="toad">Toad (p2)</option>
+              <option value="beacon">Beacon (p2)</option>
+              <option value="pulsar">Pulsar (p3)</option>
+              <option value="pentadecathlon">Pentadecathlon (p15)</option>
+            </optgroup>
+            <optgroup label="Methuselahs">
+              <option value="rpentomino">R-Pentomino</option>
+              <option value="diehard">Diehard</option>
+              <option value="acorn">Acorn</option>
+            </optgroup>
+            <optgroup label="Still Lifes">
+              <option value="block">Block & Beehive</option>
+            </optgroup>
+          </select>
+        </div>
+
+        <div style="margin-top:12px;">
+          <label style="font-size:11px;color:var(--text-dim);">Import RLE Notation / Text</label>
+          <textarea id="rleInput" placeholder="Paste RLE string here (e.g., 3o$o! or #C comment...)"></textarea>
+          <button id="importRleBtn" style="width:100%;margin-top:4px;background:var(--panel-2);border:1px solid var(--line-strong);color:var(--cyan);font-family:var(--mono);font-size:11px;padding:6px;border-radius:4px;cursor:pointer;">Load RLE String</button>
+        </div>
+      </div>
+
+      <div class="section" id="meanfieldParams" style="display:none">
+        <h2>Parameters — Mean-field microdynamics</h2>
+        <div class="numwrap row" style="display:block">
+          <div class="row"><label>Spontaneous rate (ε)</label><span class="val" id="epsVal">0.02</span></div>
+          <input type="range" id="epsSlider" min="0" max="100" value="20">
+        </div>
+        <div class="numwrap row" style="display:block">
+          <div class="row"><label>Cooperativity (α)</label><span class="val" id="alphaVal">1.50</span></div>
+          <input type="range" id="alphaSlider" min="0" max="400" value="150">
+        </div>
+        <div class="numwrap row" style="display:block">
+          <div class="row"><label>Decay rate (δ)</label><span class="val" id="deltaVal">0.20</span></div>
+          <input type="range" id="deltaSlider" min="1" max="60" value="20">
+        </div>
+        <p class="mini">Per-cell flip rates; see model info for details.</p>
+      </div>
+
+      <div class="section" id="meanfieldLocalParams" style="display:none">
+        <h2>Parameters — Local neighborhood ρ</h2>
+        <div class="numwrap row" style="display:block">
+          <div class="row"><label>Neighborhood radius</label><span class="val" id="mfRadiusVal">3</span></div>
+          <input type="range" id="mfRadiusSlider" min="1" max="15" value="3">
+        </div>
+        <p class="mini">Uses the same ε, α, δ above; see model info for details.</p>
+      </div>
+
+      <div class="section" id="sweepControls" style="display:none">
+        <h2 id="sweepTitle">Parameter Sweep</h2>
+        <div class="row" id="sweepVariableRow" style="display:none">
+          <label>Variable</label>
+          <select id="sweepVarSelect">
+            <option value="H">Field Bias (H)</option>
+            <option value="P">Noise Prob (P)</option>
+          </select>
+        </div>
+        <div class="numwrap row" style="display:block">
+          <div class="row"><label>Hold per value (sweeps)</label><span class="val" id="holdVal">150</span></div>
+          <input type="range" id="holdSlider" min="20" max="500" value="150">
+        </div>
+        <div class="numwrap row" style="display:block">
+          <div class="row"><label>Step size</label><span class="val" id="stepSizeVal">0.010</span></div>
+          <input type="range" id="stepSizeSlider" min="2" max="50" value="10">
+        </div>
+        <div class="btnrow">
+          <button id="sweepUpBtn">▲ Sweep Up</button>
+          <button id="sweepDownBtn">▼ Sweep Down</button>
+        </div>
+        <div class="btnrow">
+          <button id="sweepStopBtn">■ Stop</button>
+          <button id="sweepClearBtn">Clear Plot</button>
+        </div>
+        <p class="mini" id="sweepStatus">Idle. Sweeps across parameter range, holding each value to reach equilibrium before advancing — run both directions to see hysteresis loops on the right-hand chart.</p>
+      </div>
+
+
+      <div class="section" id="customParams" style="display:none">
+        <h2>Custom JavaScript Rule</h2>
+        <p class="mini" style="margin-top:0;margin-bottom:8px;">Available args: <code>s</code> (current cell), <code>x</code>, <code>y</code>, <code>N</code>, <code>g</code> (flat Uint8Array), <code>sum1</code> (R=1 sum), <code>avg</code> (global mean).</p>
+        <textarea id="customCode" style="font-family:var(--mono);font-size:11px;height:120px;" spellcheck="false">// Highlife example rule:
+if (s === 1) {
+  return (sum1 === 2 || sum1 === 3) ? 1 : 0;
+} else {
+  return (sum1 === 3 || sum1 === 6) ? 1 : 0;
+}</textarea>
+        <button id="applyCodeBtn" style="width:100%;margin-top:6px;background:var(--panel-2);border:1px solid var(--line-strong);color:var(--cyan);font-family:var(--mono);font-size:11px;padding:6px;border-radius:4px;cursor:pointer;">Compile & Apply Rule</button>
+        <div id="codeStatus" style="font-size:10px;color:var(--amber);margin-top:4px;font-family:var(--mono);"></div>
+      </div>
+
+      <div class="section">
+        <h2>State Colors</h2>
+        <div class="row">
+          <label>State +1 / Alive</label>
+          <input type="color" id="posColorInput" value="#4ECFC0">
+        </div>
+        <div class="row">
+          <label>State -1 / Dead</label>
+          <input type="color" id="negColorInput" value="#283244">
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>Grid &amp; Initialization</h2>
+        <div class="row">
+          <label>Size</label>
+          <span class="val" id="sizeVal">120×120</span>
+        </div>
+        <input type="range" id="sizeSlider" min="30" max="300" step="10" value="120" style="width:100%">
+        <div class="row" style="margin-top:10px">
+          <label>Init pattern</label>
+          <select id="initSelect">
+            <option value="random">Random</option>
+            <option value="seed">Single seed / nucleus</option>
+            <option value="checker">Checkerboard</option>
+            <option value="up">All +1 / alive</option>
+            <option value="down">All -1 / dead</option>
+          </select>
+        </div>
+        <div class="numwrap row" style="display:block">
+          <div class="row"><label>Density</label><span class="val" id="densityVal">0.25</span></div>
+          <input type="range" id="densitySlider" min="0" max="100" value="25">
+        </div>
+        <div class="btnrow">
+          <button id="applyInitBtn">Apply &amp; Reset</button>
+        </div>
+        <p class="mini">Click/drag grid to paint state +1, right-click to paint -1.</p>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="chartarea">
+      <div class="chartpane">
+        <div class="legend">
+          <span><i style="background:var(--cyan)"></i>⟨s⟩ instant</span>
+          <span><i style="background:var(--amber); border-bottom:1px dashed var(--amber);"></i>⟨s⟩ 10s avg: <b id="avg10Val" style="color:var(--amber);margin-left:3px;">0.000</b></span>
+        </div>
+        <canvas id="liveChart"></canvas>
+      </div>
+      <div class="chartpane" id="hysteresisPane" style="display:none">
+        <div class="legend">
+          <span><i style="background:var(--cyan)"></i>sweep ↑</span>
+          <span><i style="background:var(--ember)"></i>sweep ↓</span>
+        </div>
+        <canvas id="hysteresisChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="overlay" id="notesOverlay">
+  <div class="notes-card">
+    <button class="close" id="notesClose">×</button>
+    <h3>Implemented Dynamics</h3>
+    <p><b>Vegetation Turing Pattern:</b> Short-range facilitation (radius R1 with weight w1) promotes growth while longer-range inhibition (radius R2 with weight w2) restricts it.</p>
+    <p><b>Simplified Ising CA:</b> Spins flip toward local alignment, modulated by global bias H and noise probability P.</p>
+    <p><b>Schelling Segregation:</b> Agents evaluate neighborhood similarity within radius R=1. Unhappy cells flip state to simulate relocation.</p>
+    <p><b>Conway's Game of Life:</b> Classic 2D cellular automaton governed by local birth/survival rules (B3/S23). Includes initial preset structures and full dynamic **RLE parser** compatibility.</p>
+    <p><b>Mean-Field Population (Global ρ):</b> Each cell only knows its own state and the global density ρ (fraction of cells ON). Independent per-cell flips: OFF→ON w.p. ε+αρ², ON→OFF w.p. δ. No macro rule is imposed — averaging these independent micro-flips over the population is what produces the cubic ṡ = (1−s)(ε+αs²) − δs, whose saddle-node bifurcations (in δ) give hysteresis. Use the Sweep Up/Down buttons to ramp δ automatically, holding each value long enough to equilibrate, and watch the loop trace out on the right-hand chart.</p>
+    <p><b>Mean-Field Population (Local ρ):</b> Identical micro-rule to the global version, but each cell uses its own local neighborhood average ρᵢ (set by the radius slider) instead of the global average. Comparing the two shows how a finite interaction range shifts the effective tipping points and introduces spatial nucleation noise relative to the true mean-field limit.</p>
+    <p><b>Custom Code Rule:</b> Live dynamic JavaScript evaluation per cell for customized CA experimentation.</p>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+function hexToRgb(hex) {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result ? [
+    parseInt(result[1], 16),
+    parseInt(result[2], 16),
+    parseInt(result[3], 16)
+  ] : [255,255,255];
+}
+
+/* ============================= state ============================= */
+const state = {
+  N:120,
+  rule:'ising',
+  boundary:'periodic',
+  h:0.0, pFlip:0.05,
+  similarityThresh:0.4,
+  r1:3, w1:1.6, r2:14, w2:1.0,
+  mfEps:0.02, mfAlpha:1.5, mfDelta:0.20, mfRadius:3,
+  paramSweep:{
+    active:false,
+    variable:'H',        // 'H' or 'P' for Ising; 'delta' for Meanfield
+    direction:null,      // 'up' or 'down'
+    holdSweeps:150,      // CA sweeps to wait at each value before advancing
+    stepSize:0.01,       // increment/decrement per hold
+    holdCounter:0,
+    orderBuffer:[],
+    upData:[],
+    downData:[]
+  },
+  customFunc: null,
+  
+  posColor:'#4ECFC0',
+  negColor:'#283244',
+  
+  initMethod:'up',
+  density:0.25,
+  speed:10,
+  running:false,
+  stepCount:0,
+  sweepAccum:0,
+  grid:null,
+  history:[],
+  maxHistoryPts:260,
+  mouseDown:false,
+  mouseVal:1
+};
+
+/* ============================= DOM refs ============================= */
+const $ = (id)=>document.getElementById(id);
+const gridCanvas = $('gridCanvas');
+const gctx = gridCanvas.getContext('2d');
+let offCanvas = document.createElement('canvas');
+let offCtx = offCanvas.getContext('2d');
+
+const liveChart = $('liveChart'), liveCtx = liveChart.getContext('2d');
+
+/* ============================= grid mgmt ============================= */
+function allocGrid(){
+  state.grid = new Int8Array(state.N*state.N);
+  offCanvas.width = state.N;
+  offCanvas.height = state.N;
+}
+
+function idxWrap(x,y,N){
+  return ((y+N)%N)*N + ((x+N)%N);
+}
+
+function clearGrid(val = 0) {
+  state.grid.fill(val);
+}
+
+function stampPattern(matrix, startX, startY) {
+  const N = state.N;
+  for (let r = 0; r < matrix.length; r++) {
+    for (let c = 0; c < matrix[r].length; c++) {
+      if (matrix[r][c] === 1) {
+        const x = (startX + c) % N;
+        const y = (startY + r) % N;
+        state.grid[y * N + x] = 1;
+      }
+    }
+  }
+}
+
+/* ============================= RLE Parser ============================= */
+function parseAndStampRLE(rleStr) {
+  clearGrid(0);
+  const cleanStr = rleStr.replace(/#.*$/gm, '').replace(/\s+/g, '');
+  const N = state.N;
+  
+  let x = 0, y = 0;
+  let countStr = '';
+  
+  const data = cleanStr.split('!')[0];
+  
+  let startX = Math.max(2, Math.floor(N / 6));
+  let startY = Math.max(2, Math.floor(N / 4));
+
+  for (let i = 0; i < data.length; i++) {
+    const char = data[i];
+    
+    if (char >= '0' && char <= '9') {
+      countStr += char;
+    } else {
+      const run = countStr === '' ? 1 : parseInt(countStr, 10);
+      countStr = '';
+      
+      if (char === 'b') {
+        x += run;
+      } else if (char === 'o') {
+        for (let r = 0; r < run; r++) {
+          const px = (startX + x) % N;
+          const py = (startY + y) % N;
+          state.grid[py * N + px] = 1;
+          x++;
+        }
+      } else if (char === '$') {
+        y += run;
+        x = 0;
+      } else if (char === '!') {
+        break;
+      }
+    }
+  }
+}
+
+function applyLifePreset(type) {
+  const N = state.N;
+  clearGrid(0);
+  const mid = Math.floor(N / 2);
+
+  switch (type) {
+    case 'glider':
+      stampPattern([
+        [0, 1, 0],
+        [0, 0, 1],
+        [1, 1, 1]
+      ], mid - 1, mid - 1);
+      break;
+
+    case 'lwss':
+      stampPattern([
+        [0, 1, 0, 0, 1],
+        [1, 0, 0, 0, 0],
+        [1, 0, 0, 0, 1],
+        [1, 1, 1, 1, 0]
+      ], mid - 2, mid - 2);
+      break;
+
+    case 'mwss':
+      stampPattern([
+        [0,0,1,0,0,0],
+        [1,0,0,0,1,0],
+        [0,0,0,0,0,1],
+        [1,0,0,0,0,1],
+        [0,1,1,1,1,1]
+      ], mid - 3, mid - 2);
+      break;
+
+    case 'hwss':
+      stampPattern([
+        [0,0,0,1,1,0,0],
+        [0,1,0,0,0,0,1],
+        [1,0,0,0,0,0,0],
+        [1,0,0,0,0,0,1],
+        [1,1,1,1,1,1,0]
+      ], mid - 3, mid - 2);
+      break;
+
+    case 'gliderGun':
+      if (N < 40) alert("Grid size is too small for a Glider Gun! Try resizing to 40×40 or larger.");
+      stampPattern([
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1],
+        [0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1],
+        [1,1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+        [1,1,0,0,0,0,0,0,0,0,1,0,0,0,1,0,1,1,0,0,0,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+      ], Math.max(2, mid - 18), Math.max(2, mid - 5));
+      break;
+
+    case 'simkinGun':
+      parseAndStampRLE("3o8b3o$o2bo6bo2bo$o10bo2$2bo6bo!11b2o10b$11b2o10b6$2o24b$2o24b3$7b2o17b$7b2o17b!");
+      break;
+
+    case 'blinker':
+      stampPattern([[1, 1, 1]], mid - 1, mid);
+      break;
+
+    case 'toad':
+      stampPattern([
+        [0, 1, 1, 1],
+        [1, 1, 1, 0]
+      ], mid - 1, mid - 1);
+      break;
+
+    case 'beacon':
+      stampPattern([
+        [1, 1, 0, 0],
+        [1, 1, 0, 0],
+        [0, 0, 1, 1],
+        [0, 0, 1, 1]
+      ], mid - 2, mid - 2);
+      break;
+
+    case 'pulsar':
+      stampPattern([
+        [0,0,1,1,1,0,0,0,1,1,1,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0,0,0],
+        [1,0,0,0,0,1,0,1,0,0,0,0,1],
+        [1,0,0,0,0,1,0,1,0,0,0,0,1],
+        [1,0,0,0,0,1,0,1,0,0,0,0,1],
+        [0,0,1,1,1,0,0,0,1,1,1,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,1,1,1,0,0,0,1,1,1,0,0],
+        [1,0,0,0,0,1,0,1,0,0,0,0,1],
+        [1,0,0,0,0,1,0,1,0,0,0,0,1],
+        [1,0,0,0,0,1,0,1,0,0,0,0,1],
+        [0,0,0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,1,1,1,0,0,0,1,1,1,0,0]
+      ], mid - 6, mid - 6);
+      break;
+
+    case 'pentadecathlon':
+      stampPattern([
+        [1,1,1,1,1,1,1,1,1,1]
+      ], mid - 5, mid);
+      break;
+
+    case 'rpentomino':
+      stampPattern([
+        [0, 1, 1],
+        [1, 1, 0],
+        [0, 1, 0]
+      ], mid - 1, mid - 1);
+      break;
+
+    case 'diehard':
+      stampPattern([
+        [0,0,0,0,0,0,1,0],
+        [1,1,0,0,0,0,0,0],
+        [0,1,0,0,0,1,1,1]
+      ], mid - 4, mid - 1);
+      break;
+
+    case 'acorn':
+      stampPattern([
+        [0,1,0,0,0,0,0],
+        [0,0,0,1,0,0,0],
+        [1,1,0,0,1,1,1]
+      ], mid - 3, mid - 1);
+      break;
+
+    case 'block':
+      stampPattern([[1,1],[1,1]], mid - 6, mid);
+      stampPattern([[0,1,1,0],[1,0,0,1],[0,1,1,0]], mid + 2, mid);
+      break;
+  }
+}
+
+function randomizeGrid(){
+  const N=state.N, g=state.grid;
+  const isBinary01 = (state.rule === 'life' || state.rule === 'turing' || state.rule === 'meanfield' || state.rule === 'meanfield_local' || state.rule === 'custom');
+  const pos = 1, neg = isBinary01 ? 0 : -1;
+  const density = state.density;
+  const method = state.initMethod;
+  for(let y=0;y<N;y++){
+    for(let x=0;x<N;x++){
+      const i=y*N+x;
+      let v;
+      switch(method){
+        case 'random': v = Math.random()<density ? pos : neg; break;
+        case 'up': v = pos; break;
+        case 'down': v = neg; break;
+        case 'checker': v = ((x+y)%2===0) ? pos : neg; break;
+        case 'seed': {
+          const cx=N/2, cy=N/2, r=Math.max(2,N*0.06);
+          v = (((x-cx)**2+(y-cy)**2) < r*r) ? pos : neg;
+          break;
+        }
+        default: v = neg;
+      }
+      g[i]=v;
+    }
+  }
+}
+
+function compileCustomCode() {
+  const code = $('customCode').value;
+  try {
+    state.customFunc = new Function('s', 'x', 'y', 'N', 'g', 'sum1', 'avg', code);
+    $('codeStatus').textContent = 'Rule compiled successfully!';
+    $('codeStatus').style.color = 'var(--cyan)';
+  } catch(err) {
+    $('codeStatus').textContent = 'Syntax Error: ' + err.message;
+    $('codeStatus').style.color = 'var(--ember)';
+    state.customFunc = null;
+  }
+}
+
+function resetSimCounters(){
+  state.stepCount=0;
+  state.sweepAccum=0;
+  state.history=[];
+  $('avg10Val').textContent = '0.000';
+}
+
+/* ============================= hysteresis parameter sweep ============================= */
+function sweepVarBounds(){
+  if (state.rule === 'ising') {
+    if (state.paramSweep.variable === 'H') {
+      const el = $('hSlider');
+      return { min: (+el.min)/100, max: (+el.max)/100, label: 'H' };
+    } else {
+      const el = $('pSlider');
+      return { min: (+el.min)/100, max: (+el.max)/100, label: 'P' };
+    }
+  } else {
+    const el = $('deltaSlider');
+    return { min: (+el.min)/100, max: (+el.max)/100, label: 'δ' };
+  }
+}
+
+function getActiveSweepVarVal() {
+  if (state.rule === 'ising') {
+    return state.paramSweep.variable === 'H' ? state.h : state.pFlip;
+  }
+  return state.mfDelta;
+}
+
+function setActiveSweepVarVal(val) {
+  if (state.rule === 'ising') {
+    if (state.paramSweep.variable === 'H') {
+      state.h = val;
+      $('hSlider').value = Math.round(val * 100);
+      $('hVal').textContent = val.toFixed(2);
+    } else {
+      state.pFlip = val;
+      $('pSlider').value = Math.round(val * 100);
+      $('pVal').textContent = val.toFixed(2);
+    }
+  } else {
+    state.mfDelta = val;
+    $('deltaSlider').value = Math.round(val * 100);
+    $('deltaVal').textContent = val.toFixed(2);
+  }
+}
+
+function updateSweepStatusUI(){
+  const sw = state.paramSweep;
+  const { label } = sweepVarBounds();
+  if(!sw.active){
+    $('sweepStatus').textContent = `Idle. Sweeps ${label} across its full range, holding each value long enough for the grid to reach equilibrium before advancing — run both directions to see hysteresis on the right-hand chart.`;
+    return;
+  }
+  const dirLabel = sw.direction === 'up' ? '↑ increasing' : '↓ decreasing';
+  const val = getActiveSweepVarVal();
+  $('sweepStatus').textContent = `Sweeping ${dirLabel} — ${label} = ${val.toFixed(3)}, holding ${sw.holdCounter}/${sw.holdSweeps} sweeps for equilibrium.`;
+}
+
+function startParamSweep(direction){
+  const sw = state.paramSweep;
+  const {min,max} = sweepVarBounds();
+  sw.active = true;
+  sw.direction = direction;
+  sw.holdCounter = 0;
+  sw.orderBuffer = [];
+  
+  setActiveSweepVarVal(direction === 'up' ? min : max);
+  
+  if(direction === 'up') sw.upData = [];
+  else sw.downData = [];
+  if(!state.running) togglePlay(true);
+  updateSweepStatusUI();
+}
+
+function stopParamSweep(){
+  state.paramSweep.active = false;
+  state.paramSweep.direction = null;
+  updateSweepStatusUI();
+}
+
+function clearParamSweepData(){
+  state.paramSweep.upData = [];
+  state.paramSweep.downData = [];
+}
+
+function tickParamSweep(order){
+  const sw = state.paramSweep;
+  if(!sw.active) return;
+
+  sw.orderBuffer.push(order);
+  if(sw.orderBuffer.length > 40) sw.orderBuffer.shift();
+  sw.holdCounter++;
+  updateSweepStatusUI();
+
+  if(sw.holdCounter >= sw.holdSweeps){
+    const avgOrder = sw.orderBuffer.reduce((a,b)=>a+b,0) / sw.orderBuffer.length;
+    const currentVal = getActiveSweepVarVal();
+    const point = { param: currentVal, order: avgOrder };
+    if(sw.direction === 'up') sw.upData.push(point);
+    else sw.downData.push(point);
+
+    sw.holdCounter = 0;
+    sw.orderBuffer = [];
+
+    const {min,max} = sweepVarBounds();
+    let nextVal = currentVal;
+    if(sw.direction === 'up'){
+      nextVal = Math.min(max, currentVal + sw.stepSize);
+      setActiveSweepVarVal(nextVal);
+      if(nextVal >= max - 1e-9) stopParamSweep();
+    } else {
+      nextVal = Math.max(min, currentVal - sw.stepSize);
+      setActiveSweepVarVal(nextVal);
+      if(nextVal <= min + 1e-9) stopParamSweep();
+    }
+  }
+}
+
+function fullReset(){
+  stopParamSweep();
+  allocGrid();
+  if (state.rule === 'life') {
+    applyLifePreset($('lifePresetSelect').value);
+  } else {
+    randomizeGrid();
+  }
+  resetSimCounters();
+}
+
+/* ============================= neighborhood lookups ============================= */
+function getRegionSum(x, y, radius) {
+  const N = state.N, g = state.grid;
+  let sum = 0, count = 0;
+  for(let dy = -radius; dy <= radius; dy++) {
+    for(let dx = -radius; dx <= radius; dx++) {
+      if(dx === 0 && dy === 0) continue;
+      let nx = x + dx, ny = y + dy;
+      if(state.boundary === 'periodic') {
+        sum += g[idxWrap(nx, ny, N)];
+        count++;
+      } else {
+        count++;
+        if(nx >= 0 && nx < N && ny >= 0 && ny < N) {
+          sum += g[ny * N + nx];
+        }
+      }
+    }
+  }
+  return { sum, count };
+}
+
+function computeGlobalAverage() {
+  const g = state.grid, N2 = state.N * state.N;
+  let sum = 0;
+  for(let i=0; i<N2; i++) sum += g[i];
+  return sum / N2;
+}
+
+/* ============================= update step handlers ============================= */
+function doStep(){
+  const N = state.N, g = state.grid, N2 = N * N;
+  const nextG = new Int8Array(N2);
+  const globalAvg = computeGlobalAverage();
+
+  if(state.rule === 'ising') {
+    for(let y=0;y<N;y++){
+      for(let x=0;x<N;x++){
+        const i = y*N+x;
+        if(Math.random() < state.pFlip) {
+          nextG[i] = Math.random() < 0.5 ? 1 : -1;
+        } else {
+          const { sum } = getRegionSum(x, y, 1);
+          const localField = sum + state.h;
+          nextG[i] = localField >= 0 ? 1 : -1;
+        }
+      }
+    }
+  } 
+  else if(state.rule === 'schelling') {
+    for(let y=0;y<N;y++){
+      for(let x=0;x<N;x++){
+        const i = y*N+x;
+        const s = g[i];
+        const { sum, count } = getRegionSum(x, y, 1);
+        const sameCount = (sum + count) / 2; 
+        const ratio = count > 0 ? sameCount / count : 1;
+        if(ratio < state.similarityThresh) {
+          nextG[i] = Math.random() < 0.5 ? -s : s; 
+        } else {
+          nextG[i] = s;
+        }
+      }
+    }
+  }
+  else if(state.rule === 'turing') {
+    for(let y=0;y<N;y++){
+      for(let x=0;x<N;x++){
+        const i = y*N+x;
+        const s = g[i];
+        const r1Res = getRegionSum(x, y, state.r1);
+        const r2Res = getRegionSum(x, y, state.r2);
+        
+        const f1 = r1Res.sum / (r1Res.count || 1);
+        const f2 = r2Res.sum / (r2Res.count || 1);
+        
+        const netGrowth = f1 * state.w1 - f2 * state.w2;
+        
+        if(netGrowth > 0.05) nextG[i] = 1;
+        else if(netGrowth < 0.0) nextG[i] = 0;
+        else nextG[i] = s;
+      }
+    }
+  }
+  else if(state.rule === 'life') {
+    for(let y=0;y<N;y++){
+      for(let x=0;x<N;x++){
+        const i = y*N+x;
+        const s = g[i];
+        const { sum } = getRegionSum(x, y, 1);
+        if(s === 1) nextG[i] = (sum === 2 || sum === 3) ? 1 : 0;
+        else nextG[i] = (sum === 3) ? 1 : 0;
+      }
+    }
+  }
+  else if(state.rule === 'meanfield') {
+    const rho = globalAvg;
+    const eps = state.mfEps, alpha = state.mfAlpha, delta = state.mfDelta;
+    const w01 = Math.min(1, Math.max(0, eps + alpha * rho * rho));
+    const w10 = Math.min(1, Math.max(0, delta));
+
+    for(let i=0; i<N2; i++){
+      const cell = g[i];
+      if(cell === 0) nextG[i] = (Math.random() < w01) ? 1 : 0;
+      else            nextG[i] = (Math.random() < w10) ? 0 : 1;
+    }
+  }
+  else if(state.rule === 'meanfield_local') {
+    const eps = state.mfEps, alpha = state.mfAlpha, delta = state.mfDelta;
+    for(let y=0;y<N;y++){
+      for(let x=0;x<N;x++){
+        const i = y*N+x;
+        const cell = g[i];
+        const { sum, count } = getRegionSum(x, y, state.mfRadius);
+        const rho = count > 0 ? sum / count : 0;
+        const w01 = Math.min(1, Math.max(0, eps + alpha * rho * rho));
+        const w10 = Math.min(1, Math.max(0, delta));
+        if(cell === 0) nextG[i] = (Math.random() < w01) ? 1 : 0;
+        else            nextG[i] = (Math.random() < w10) ? 0 : 1;
+      }
+    }
+  }
+  else if(state.rule === 'custom') {
+    if(!state.customFunc) compileCustomCode();
+    for(let y=0;y<N;y++){
+      for(let x=0;x<N;x++){
+        const i = y*N+x;
+        const s = g[i];
+        const { sum: sum1 } = getRegionSum(x, y, 1);
+        try {
+          const res = state.customFunc(s, x, y, N, g, sum1, globalAvg);
+          nextG[i] = (res ? 1 : 0);
+        } catch(e) {
+          nextG[i] = s;
+        }
+      }
+    }
+  }
+
+  state.grid = nextG;
+  state.stepCount++;
+}
+
+/* ============================= rendering: grid ============================= */
+function renderGrid(){
+  const N=state.N, g=state.grid;
+  const img = offCtx.createImageData(N,N);
+  const data = img.data;
+  const posC = hexToRgb(state.posColor);
+  const negC = hexToRgb(state.negColor);
+
+  for(let i=0;i<N*N;i++){
+    const v=g[i];
+    const active = (v === 1);
+    const c = active ? posC : negC;
+    const p=i*4;
+    data[p]=c[0]; data[p+1]=c[1]; data[p+2]=c[2]; data[p+3]=255;
+  }
+  offCtx.putImageData(img,0,0);
+  gctx.imageSmoothingEnabled=false;
+  gctx.clearRect(0,0,gridCanvas.width,gridCanvas.height);
+  gctx.drawImage(offCanvas,0,0,gridCanvas.width,gridCanvas.height);
+}
+
+function syncCanvasSize(){
+  const rect = gridCanvas.getBoundingClientRect();
+  const dpr = Math.min(window.devicePixelRatio||1, 2);
+  gridCanvas.width = Math.round(rect.width*dpr);
+  gridCanvas.height = Math.round(rect.height*dpr);
+}
+
+/* ============================= rendering: chart ============================= */
+function drawAxes(ctx,W,H,pad){
+  ctx.strokeStyle='#28324470';
+  ctx.lineWidth=1;
+  ctx.beginPath();
+  ctx.moveTo(pad.l,pad.t); ctx.lineTo(pad.l,H-pad.b); ctx.lineTo(W-pad.r,H-pad.b);
+  ctx.stroke();
+}
+
+function drawLiveChart(){
+  const W=liveChart.clientWidth, H=liveChart.clientHeight;
+  const dpr = Math.min(window.devicePixelRatio||1,2);
+  if(liveChart.width!==Math.round(W*dpr)) liveChart.width=Math.round(W*dpr);
+  if(liveChart.height!==Math.round(H*dpr)) liveChart.height=Math.round(H*dpr);
+  liveCtx.setTransform(dpr,0,0,dpr,0,0);
+  liveCtx.clearRect(0,0,W,H);
+
+  const pad={l:55,r:10,t:12,b:22};
+  const isBinary01 = (state.rule === 'life' || state.rule === 'turing' || state.rule === 'meanfield' || state.rule === 'meanfield_local' || state.rule === 'custom');
+  const yMin = isBinary01 ? 0 : -1, yMax = 1;
+  drawAxes(liveCtx,W,H,pad);
+
+  liveCtx.save();
+  liveCtx.fillStyle='#7C8CA3';
+  liveCtx.font='10px "IBM Plex Mono"';
+  liveCtx.textAlign='center';
+  liveCtx.translate(14, (pad.t + H - pad.b) / 2);
+  liveCtx.rotate(-Math.PI / 2);
+  liveCtx.fillText('grid average ⟨s⟩', 0, 0);
+  liveCtx.restore();
+
+  liveCtx.fillStyle='#7C8CA3'; 
+  liveCtx.font='10px "IBM Plex Mono"';
+  liveCtx.textAlign='right';
+  liveCtx.fillText(yMax.toFixed(1), pad.l - 6, pad.t + 4);
+  liveCtx.fillText(((yMax+yMin)/2).toFixed(1), pad.l - 6, (H-pad.b+pad.t)/2 + 3);
+  liveCtx.fillText(yMin.toFixed(1), pad.l - 6, H - pad.b + 3);
+
+  if(yMin<0){
+    const zy = pad.t + (H-pad.t-pad.b)*(1-(0-yMin)/(yMax-yMin));
+    liveCtx.strokeStyle='#28324450';
+    liveCtx.setLineDash([3,3]);
+    liveCtx.beginPath(); 
+    liveCtx.moveTo(pad.l,zy); 
+    liveCtx.lineTo(W-pad.r,zy); 
+    liveCtx.stroke();
+    liveCtx.setLineDash([]);
+  }
+
+  const hist = state.history.slice(-state.maxHistoryPts);
+  if(hist.length>1){
+    liveCtx.strokeStyle='#4ECFC0';
+    liveCtx.lineWidth=1.5;
+    liveCtx.beginPath();
+    hist.forEach((pt,idx)=>{
+      const px = pad.l + (W-pad.l-pad.r)*(idx/(hist.length-1));
+      const py = pad.t + (H-pad.t-pad.b)*(1-(pt.order-yMin)/(yMax-yMin));
+      if(idx===0) liveCtx.moveTo(px,py); else liveCtx.lineTo(px,py);
+    });
+    liveCtx.stroke();
+
+    const windowSteps = Math.max(1, Math.round(state.speed * 10));
+    const rollingAvgs = [];
+
+    for (let i = 0; i < hist.length; i++) {
+      const startIdx = Math.max(0, i - windowSteps + 1);
+      let sum = 0;
+      for (let j = startIdx; j <= i; j++) {
+        sum += hist[j].order;
+      }
+      rollingAvgs.push(sum / (i - startIdx + 1));
+    }
+
+    liveCtx.strokeStyle='#F2C14E';
+    liveCtx.lineWidth=2.0;
+    liveCtx.setLineDash([4, 3]);
+    liveCtx.beginPath();
+    rollingAvgs.forEach((avg, idx)=>{
+      const px = pad.l + (W-pad.l-pad.r)*(idx/(rollingAvgs.length-1));
+      const py = pad.t + (H-pad.t-pad.b)*(1-(avg-yMin)/(yMax-yMin));
+      if(idx===0) liveCtx.moveTo(px,py); else liveCtx.lineTo(px,py);
+    });
+    liveCtx.stroke();
+    liveCtx.setLineDash([]);
+
+    const latestAvg10 = rollingAvgs[rollingAvgs.length - 1];
+    $('avg10Val').textContent = latestAvg10.toFixed(3);
+  }
+
+  liveCtx.fillStyle='#7C8CA3'; 
+  liveCtx.font='10px "IBM Plex Mono"';
+  liveCtx.textAlign='left';
+  liveCtx.fillText('steps →', pad.l, H - 4);
+}
+
+const hysteresisChart = $('hysteresisChart'), hysteresisCtx = hysteresisChart.getContext('2d');
+
+function drawHysteresisChart(){
+  const isSweepable = (state.rule === 'meanfield' || state.rule === 'meanfield_local' || state.rule === 'ising');
+  $('hysteresisPane').style.display = isSweepable ? '' : 'none';
+  if(!isSweepable) return;
+
+  const dpr = window.devicePixelRatio||1;
+  const W = hysteresisChart.clientWidth, H = hysteresisChart.clientHeight;
+  if(W===0 || H===0) return;
+  if(hysteresisChart.width!==Math.round(W*dpr)) hysteresisChart.width=Math.round(W*dpr);
+  if(hysteresisChart.height!==Math.round(H*dpr)) hysteresisChart.height=Math.round(H*dpr);
+  hysteresisCtx.setTransform(dpr,0,0,dpr,0,0);
+  hysteresisCtx.clearRect(0,0,W,H);
+
+  const pad={l:55,r:10,t:12,b:22};
+  drawAxes(hysteresisCtx,W,H,pad);
+
+  const {min:pMin, max:pMax, label} = sweepVarBounds();
+  const isBinary01 = (state.rule === 'life' || state.rule === 'turing' || state.rule === 'meanfield' || state.rule === 'meanfield_local' || state.rule === 'custom');
+  const yMin = isBinary01 ? 0 : -1, yMax = 1;
+
+  hysteresisCtx.save();
+  hysteresisCtx.fillStyle='#7C8CA3';
+  hysteresisCtx.font='10px "IBM Plex Mono"';
+  hysteresisCtx.textAlign='center';
+  hysteresisCtx.translate(14, (pad.t + H - pad.b) / 2);
+  hysteresisCtx.rotate(-Math.PI / 2);
+  hysteresisCtx.fillText('⟨s⟩ equilibrium', 0, 0);
+  hysteresisCtx.restore();
+
+  hysteresisCtx.fillStyle='#7C8CA3';
+  hysteresisCtx.font='10px "IBM Plex Mono"';
+  hysteresisCtx.textAlign='right';
+  hysteresisCtx.fillText(yMax.toFixed(1), pad.l - 6, pad.t + 4);
+  hysteresisCtx.fillText(((yMax+yMin)/2).toFixed(1), pad.l - 6, (H-pad.b+pad.t)/2 + 3);
+  hysteresisCtx.fillText(yMin.toFixed(1), pad.l - 6, H - pad.b + 3);
+
+  const xOf = (v)=> pad.l + (W-pad.l-pad.r) * ((v-pMin)/(pMax-pMin || 1));
+  const yOf = (o)=> pad.t + (H-pad.t-pad.b) * (1 - (o - yMin)/(yMax - yMin));
+
+  function drawSeries(data, color){
+    if(data.length===0) return;
+    hysteresisCtx.strokeStyle=color; hysteresisCtx.fillStyle=color; hysteresisCtx.lineWidth=1.5;
+    hysteresisCtx.beginPath();
+    data.forEach((pt,idx)=>{
+      const px=xOf(pt.param), py=yOf(pt.order);
+      if(idx===0) hysteresisCtx.moveTo(px,py); else hysteresisCtx.lineTo(px,py);
+    });
+    hysteresisCtx.stroke();
+    data.forEach(pt=>{
+      const px=xOf(pt.param), py=yOf(pt.order);
+      hysteresisCtx.beginPath(); hysteresisCtx.arc(px,py,2.2,0,Math.PI*2); hysteresisCtx.fill();
+    });
+  }
+
+  drawSeries(state.paramSweep.upData, '#4ECFC0');
+  drawSeries(state.paramSweep.downData, '#E8604C');
+
+  if(state.paramSweep.active){
+    const liveOrder = state.history.length ? state.history[state.history.length-1].order : computeGlobalAverage();
+    const currentVal = getActiveSweepVarVal();
+    const px = xOf(currentVal), py = yOf(liveOrder);
+    hysteresisCtx.fillStyle = state.paramSweep.direction==='up' ? '#4ECFC0' : '#E8604C';
+    hysteresisCtx.beginPath(); hysteresisCtx.arc(px,py,4,0,Math.PI*2); hysteresisCtx.fill();
+    hysteresisCtx.strokeStyle='#fff'; hysteresisCtx.lineWidth=1; hysteresisCtx.stroke();
+  }
+
+  hysteresisCtx.fillStyle='#7C8CA3';
+  hysteresisCtx.font='10px "IBM Plex Mono"';
+  hysteresisCtx.textAlign='left';
+  hysteresisCtx.fillText(label + ' = ' + pMin.toFixed(2), pad.l, H - 4);
+  hysteresisCtx.textAlign='right';
+  hysteresisCtx.fillText(pMax.toFixed(2), W-pad.r, H - 4);
+}
+
+/* ============================= main loop ============================= */
+let lastT = performance.now();
+function frame(now){
+  const dt = Math.min((now-lastT)/1000, 0.25);
+  lastT = now;
+
+  if(state.running){
+    state.sweepAccum += state.speed*dt;
+    state.sweepAccum = Math.min(state.sweepAccum, 6);
+    while(state.sweepAccum>=1){
+      doStep();
+      state.sweepAccum-=1;
+      const order = computeGlobalAverage();
+      state.history.push({t:state.stepCount, order});
+      tickParamSweep(order);
+    }
+    if(state.history.length>2000) state.history.splice(0, state.history.length-2000);
+  }
+
+  renderGrid();
+  updateHUD();
+  drawLiveChart();
+  drawHysteresisChart();
+
+  requestAnimationFrame(frame);
+}
+
+function updateHUD(){
+  $('hudCount').textContent = state.stepCount;
+  const order = state.history.length ? state.history[state.history.length-1].order : computeGlobalAverage();
+  $('hudOrder').textContent = order.toFixed(3);
+}
+
+/* ============================= UI wiring ============================= */
+function togglePlay(force){
+  state.running = (force!==undefined) ? force : !state.running;
+  $('playBtn').textContent = state.running ? '❚❚ Pause' : '▶ Run';
+}
+
+function applyPresetColors(rule) {
+  if(rule === 'turing') {
+    state.posColor = '#4ECFC0'; 
+    state.negColor = '#283244'; 
+  } else if(rule === 'schelling') {
+    state.posColor = '#F2C14E'; 
+    state.negColor = '#9C87E0'; 
+  } else if(rule === 'life') {
+    state.posColor = '#F2C14E';
+    state.negColor = '#11161F';
+  } else if(rule === 'custom') {
+    state.posColor = '#9C87E0';
+    state.negColor = '#11161F';
+  } else {
+    state.posColor = '#F2C14E';
+    state.negColor = '#233246';
+  }
+  $('posColorInput').value = state.posColor;
+  $('negColorInput').value = state.negColor;
+}
+
+function updateRuleVisibility(){
+  $('turingParams').style.display = state.rule==='turing' ? '' : 'none';
+  $('isingParams').style.display = state.rule==='ising' ? '' : 'none';
+  $('schellingParams').style.display = state.rule==='schelling' ? '' : 'none';
+  $('lifeParams').style.display = state.rule==='life' ? '' : 'none';
+  $('meanfieldParams').style.display = (state.rule==='meanfield' || state.rule==='meanfield_local') ? '' : 'none';
+  $('meanfieldLocalParams').style.display = state.rule==='meanfield_local' ? '' : 'none';
+  
+  const isSweepable = (state.rule==='meanfield' || state.rule==='meanfield_local' || state.rule==='ising');
+  $('sweepControls').style.display = isSweepable ? '' : 'none';
+  $('sweepVariableRow').style.display = state.rule==='ising' ? 'flex' : 'none';
+  
+  if (state.rule === 'ising') {
+    $('sweepTitle').textContent = `Parameter Sweep (${state.paramSweep.variable})`;
+  } else {
+    $('sweepTitle').textContent = `Hysteresis Sweep (δ)`;
+  }
+
+  $('customParams').style.display = state.rule==='custom' ? '' : 'none';
+}
+
+function wireUI(){
+  $('ruleSelect').addEventListener('change', e=>{
+    state.rule = e.target.value;
+    applyPresetColors(state.rule);
+    updateRuleVisibility();
+    stopParamSweep();
+    clearParamSweepData();
+    fullReset();
+  });
+  $('boundSelect').addEventListener('change', e=>{ state.boundary = e.target.value; });
+
+  $('lifePresetSelect').addEventListener('change', e => {
+    if (state.rule === 'life') {
+      applyLifePreset(e.target.value);
+      resetSimCounters();
+    }
+  });
+
+  $('importRleBtn').addEventListener('click', () => {
+    const rleStr = $('rleInput').value.trim();
+    if (rleStr) {
+      parseAndStampRLE(rleStr);
+      resetSimCounters();
+    }
+  });
+
+  $('applyCodeBtn').addEventListener('click', () => {
+    compileCustomCode();
+  });
+
+  $('hSlider').addEventListener('input', e=>{ state.h = (+e.target.value)/100; $('hVal').textContent=state.h.toFixed(2); });
+  $('pSlider').addEventListener('input', e=>{ state.pFlip = (+e.target.value)/100; $('pVal').textContent=state.pFlip.toFixed(2); });
+  $('threshSlider').addEventListener('input', e=>{ state.similarityThresh = (+e.target.value)/100; $('threshVal').textContent=state.similarityThresh.toFixed(2); });
+  
+  $('r1Slider').addEventListener('input', e=>{ state.r1 = parseInt(e.target.value); $('r1Val').textContent=state.r1; });
+  $('w1Slider').addEventListener('input', e=>{ state.w1 = (+e.target.value)/100; $('w1Val').textContent=state.w1.toFixed(2); });
+  $('r2Slider').addEventListener('input', e=>{ state.r2 = parseInt(e.target.value); $('r2Val').textContent=state.r2; });
+  $('w2Slider').addEventListener('input', e=>{ state.w2 = (+e.target.value)/100; $('w2Val').textContent=state.w2.toFixed(2); });
+
+  $('epsSlider').addEventListener('input', e=>{ state.mfEps = (+e.target.value)/1000; $('epsVal').textContent=state.mfEps.toFixed(3); });
+  $('alphaSlider').addEventListener('input', e=>{ state.mfAlpha = (+e.target.value)/100; $('alphaVal').textContent=state.mfAlpha.toFixed(2); });
+  $('deltaSlider').addEventListener('input', e=>{ state.mfDelta = (+e.target.value)/100; $('deltaVal').textContent=state.mfDelta.toFixed(2); });
+  $('mfRadiusSlider').addEventListener('input', e=>{ state.mfRadius = parseInt(e.target.value); $('mfRadiusVal').textContent=state.mfRadius; });
+
+  $('sweepVarSelect').addEventListener('change', e=>{
+    state.paramSweep.variable = e.target.value;
+    $('sweepTitle').textContent = `Parameter Sweep (${state.paramSweep.variable})`;
+    stopParamSweep();
+    clearParamSweepData();
+    updateSweepStatusUI();
+  });
+
+  $('holdSlider').addEventListener('input', e=>{ state.paramSweep.holdSweeps = parseInt(e.target.value); $('holdVal').textContent=state.paramSweep.holdSweeps; });
+  $('stepSizeSlider').addEventListener('input', e=>{ state.paramSweep.stepSize = (+e.target.value)/1000; $('stepSizeVal').textContent=state.paramSweep.stepSize.toFixed(3); });
+  $('sweepUpBtn').addEventListener('click', ()=>startParamSweep('up'));
+  $('sweepDownBtn').addEventListener('click', ()=>startParamSweep('down'));
+  $('sweepStopBtn').addEventListener('click', ()=>stopParamSweep());
+  $('sweepClearBtn').addEventListener('click', ()=>clearParamSweepData());
+
+  $('posColorInput').addEventListener('input', e=>{ state.posColor = e.target.value; });
+  $('negColorInput').addEventListener('input', e=>{ state.negColor = e.target.value; });
+
+  $('sizeSlider').addEventListener('input', e=>{ $('sizeVal').textContent = e.target.value+'×'+e.target.value; });
+  $('sizeSlider').addEventListener('change', e=>{
+    state.N = parseInt(e.target.value);
+    fullReset();
+  });
+  $('initSelect').addEventListener('change', e=>{ state.initMethod = e.target.value; });
+  $('densitySlider').addEventListener('input', e=>{ state.density=(+e.target.value)/100; $('densityVal').textContent=state.density.toFixed(2); });
+  $('applyInitBtn').addEventListener('click', ()=>{ randomizeGrid(); resetSimCounters(); });
+
+  $('playBtn').addEventListener('click', ()=>togglePlay());
+  $('stepBtn').addEventListener('click', ()=>{
+    doStep();
+    const order=computeGlobalAverage();
+    state.history.push({t: state.stepCount, order});
+  });
+  $('resetBtn').addEventListener('click', ()=>{ fullReset(); });
+
+  $('speedSlider').addEventListener('input', e=>{
+    const p = (+e.target.value)/100;
+    const speed = Math.pow(10, -1 + p*3.3);
+    state.speed = speed;
+    $('speedVal').textContent = (speed<1? speed.toFixed(2): speed.toFixed(1))+' /s';
+  });
+
+  function paintAt(clientX, clientY, val){
+    const rect = gridCanvas.getBoundingClientRect();
+    const N=state.N;
+    const x = Math.floor((clientX-rect.left)/rect.width*N);
+    const y = Math.floor((clientY-rect.top)/rect.height*N);
+    if(x<0||x>=N||y<0||y>=N) return;
+    state.grid[y*N+x] = val;
+  }
+  gridCanvas.addEventListener('contextmenu', e=>e.preventDefault());
+  gridCanvas.addEventListener('mousedown', e=>{
+    state.mouseDown=true;
+    const isBinary01 = (state.rule === 'life' || state.rule === 'turing' || state.rule === 'meanfield' || state.rule === 'meanfield_local' || state.rule === 'custom');
+    state.mouseVal = e.button===2 ? (isBinary01?0:-1) : 1;
+    paintAt(e.clientX,e.clientY,state.mouseVal);
+  });
+  window.addEventListener('mouseup', ()=>state.mouseDown=false);
+  gridCanvas.addEventListener('mousemove', e=>{
+    if(state.mouseDown) paintAt(e.clientX,e.clientY,state.mouseVal);
+  });
+
+  $('notesBtn').addEventListener('click', ()=>$('notesOverlay').classList.add('show'));
+  $('notesClose').addEventListener('click', ()=>$('notesOverlay').classList.remove('show'));
+  $('notesOverlay').addEventListener('click', e=>{ if(e.target.id==='notesOverlay') $('notesOverlay').classList.remove('show'); });
+
+  window.addEventListener('keydown', e=>{
+    const tag=(e.target.tagName||'').toLowerCase();
+    if(tag==='input'||tag==='select'||tag==='textarea') return;
+    if(e.code==='Space'){ e.preventDefault(); togglePlay(); }
+    if(e.key==='s'||e.key==='S'){ $('stepBtn').click(); }
+  });
+
+  window.addEventListener('resize', syncCanvasSize);
+}
+
+/* ============================= init ============================= */
+function init(){
+  wireUI();
+  applyPresetColors(state.rule);
+  updateRuleVisibility();
+  compileCustomCode();
+  $('speedSlider').dispatchEvent(new Event('input'));
+  $('sizeSlider').dispatchEvent(new Event('input'));
+  syncCanvasSize();
+  fullReset();
+  requestAnimationFrame(frame);
+}
+init();
+
+})();
+</script>
+</body>
+</html>
