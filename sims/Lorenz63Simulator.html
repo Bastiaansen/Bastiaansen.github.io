@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>De Wiskunde van Onvoorspelbaarheid</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#090C15;
+    --panel:#111729;
+    --panel-2:#0d1322;
+    --border:#212c46;
+    --border-soft:#1a2338;
+    --text:#EDF1FA;
+    --muted:#8B96B3;
+    --muted-2:#5b6685;
+    --amber:#FFB454;
+    --teal:#5EEAD4;
+    --red:#FF6B5E;
+  }
+  *{box-sizing:border-box;}
+  
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'IBM Plex Mono', monospace;
+    height: 100vh;
+    overflow: hidden;
+  }
+  ::selection{background:var(--amber);color:#1a1200;}
+
+  .wrap {
+    width: 100vw;
+    height: 100vh;
+    padding: 10px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  header.top{
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+    border-bottom:1px solid var(--border-soft);
+    padding-bottom:6px;
+    flex-shrink: 0;
+  }
+  .eyebrow{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--amber);font-weight:600;}
+  h1{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(16px, 1.8vw, 22px);margin:0;letter-spacing:-0.01em;}
+  .sub{color:var(--muted);font-size:11px;max-width:1100px;line-height:1.2;}
+
+  .panel-outer{
+    border:1px solid var(--border-soft);
+    background:var(--panel);
+    border-radius:4px;
+    overflow:hidden;
+    flex: 1;
+    min-height: 0;
+  }
+
+  .stage{
+    display:grid;
+    grid-template-columns:1fr 280px;
+    gap:0;
+    height: 100%;
+  }
+  @media (max-width:1024px){.stage{grid-template-columns:1fr;}}
+
+  .canvas-area{
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle at 50% 0%, rgba(255,180,84,.04), transparent 60%);
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+  }
+  
+  canvas{
+    width: 100%;
+    height: 100%;
+    display: block;
+    background: var(--panel-2);
+    border: 1px solid var(--border-soft);
+    border-radius: 3px;
+  }
+  
+  .canvas-container {
+    width: 100%;
+    height: 100%;
+    flex: 1;
+    min-height: 0;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+
+  #viewCombinedWrap, #viewRowWrap, #viewColWrap {
+    width: 100%;
+    height: calc(100% - 20px);
+    min-height: 0;
+  }
+
+  .split-canvases-row{display:flex;gap:8px;width:100%;height:100%;}
+  .split-canvases-row > div {flex: 1; height: 100%; display: flex; flex-direction: column; min-width: 0;}
+  
+  .split-canvases-col{display:flex;flex-direction:column;gap:8px;width:100%;height:100%;}
+  .split-canvases-col > div {width: 100%; flex: 1; display: flex; flex-direction: column; min-height: 0;}
+
+  .canvas-label{font-size:10px;color:var(--muted-2);text-transform:uppercase;letter-spacing:.12em;text-align:center;margin-top:2px;flex-shrink: 0;}
+
+  .controls{
+    border-left:1px solid var(--border-soft);
+    padding:10px;
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    background:var(--panel-2);
+    height:100%;
+    overflow-y:auto;
+  }
+
+  .field-group-title{font-size:9px;font-weight:600;color:var(--amber);text-transform:uppercase;
+    letter-spacing:.12em;margin-top:2px;border-bottom:1px solid var(--border-soft);padding-bottom:2px;}
+
+  .field label{display:block;font-size:9px;text-transform:uppercase;letter-spacing:.08em;
+    color:var(--muted);margin-bottom:2px;}
+  .field .val{color:var(--amber);font-weight:600;}
+  input[type=range], select{width:100%;accent-color:var(--amber);}
+  select{background:var(--panel);color:var(--text);border:1px solid var(--border-soft);
+    padding:3px;border-radius:3px;font-family:'IBM Plex Mono',monospace;font-size:10px;}
+  input[type=range]{height:3px;}
+
+  .param-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;}
+  .param-grid .field label{font-size:8px;}
+
+  .btnrow{display:flex;gap:6px;flex-wrap:wrap;margin-top:2px;}
+  button.act{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:11px;
+    background:transparent;color:var(--text);border:1px solid var(--border);
+    padding:5px 8px;border-radius:3px;cursor:pointer;transition:all .15s;flex:1;
+    min-width:60px;}
+  button.act:hover{border-color:var(--amber);color:var(--amber);}
+  button.act.primary{background:var(--amber);color:#1a1200;border-color:var(--amber);}
+  button.act.primary:hover{background:#ffc276;}
+
+  .readout{background:var(--panel);border:1px solid var(--border-soft);border-radius:3px;
+    padding:6px 8px;display:flex;flex-direction:column;gap:3px;}
+  .readout .row{display:flex;justify-content:space-between;align-items:baseline;font-size:9px;}
+  .readout .row .k{color:var(--muted);}
+  .readout .row .v{color:var(--text);font-weight:600;font-variant-numeric:tabular-nums;}
+  .readout .row .v.warn{color:var(--red);}
+  .readout .row .v.ok{color:var(--teal);}
+
+  .legend{display:flex;gap:12px;font-size:10px;color:var(--muted);flex-wrap:wrap;
+    justify-content:center; flex-shrink: 0;}
+  .legend span{display:inline-flex;align-items:center;gap:4px;}
+  .dot{width:7px;height:7px;border-radius:50%;display:inline-block;}
+
+  footer{color:var(--muted-2);font-size:9px;text-align:center;letter-spacing:.04em;flex-shrink: 0;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="eyebrow">Weer &middot; Klimaat &middot; Chaos</div>
+    <h1>De wiskunde van (on)voorspelbaarheid</h1>
+    <div class="sub">Het Lorenz 63-model live in de browser. Pas parameters en beginwaarden aan, start de simulatie 
+      en bekijk hoe het systeem reageert op kleine meetverschillen.</div>
+  </header>
+
+  <section class="panel-outer">
+    <div class="stage">
+      <div class="canvas-area">
+        <div id="viewCombinedWrap">
+          <canvas id="cCombined"></canvas>
+        </div>
+        <div id="viewRowWrap" class="split-canvases-row" style="display:none">
+          <div class="canvas-container">
+            <canvas id="cRowA"></canvas>
+            <div class="canvas-label">Simulatie A</div>
+          </div>
+          <div class="canvas-container">
+            <canvas id="cRowB"></canvas>
+            <div class="canvas-label">Simulatie B</div>
+          </div>
+        </div>
+        <div id="viewColWrap" class="split-canvases-col" style="display:none">
+          <div class="canvas-container">
+            <canvas id="cColA"></canvas>
+            <div class="canvas-label">Simulatie A</div>
+          </div>
+          <div class="canvas-container">
+            <canvas id="cColB"></canvas>
+            <div class="canvas-label">Simulatie B</div>
+          </div>
+        </div>
+
+        <div class="legend">
+          <span><i class="dot" style="background:var(--amber)"></i>Simulatie A</span>
+          <span><i class="dot" style="background:var(--teal)"></i>Simulatie B</span>
+          <span id="divergeLegend"><i class="dot" style="background:var(--red)"></i>Punt van afwijking</span>
+        </div>
+      </div>
+
+      <div class="controls">
+        <div class="field-group-title">Weergave</div>
+        <div class="field">
+          <label>Weergavemodus</label>
+          <select id="viewSelect">
+            <option value="ts_combined">Tijdreeks (Samen)</option>
+            <option value="ts_row">Tijdreeks (Naast elkaar)</option>
+            <option value="ts_col">Tijdreeks (Boven elkaar)</option>
+            <option value="phase_combined">Faseruimte (Samen)</option>
+            <option value="phase_row">Faseruimte (Naast elkaar)</option>
+            <option value="phase_col">Faseruimte (Boven elkaar)</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Tijdsvenster (Sec) &nbsp;<span class="val" id="windowLabel">20</span></label>
+          <input type="range" id="timeWindow" min="5" max="50" step="1" value="20">
+        </div>
+
+        <div class="field">
+          <label>Beginverschil ($\epsilon$) &nbsp;<span class="val" id="epsLabel">10⁻⁴</span></label>
+          <input type="range" id="eps" min="1" max="8" step="1" value="4">
+        </div>
+
+        <div class="field-group-title">Model Parameters</div>
+        <div class="param-grid">
+          <div class="field">
+            <label>$\sigma$ &nbsp;<span class="val" id="sigmaVal">10.0</span></label>
+            <input type="range" id="sigmaInput" min="1" max="30" step="0.5" value="10">
+          </div>
+          <div class="field">
+            <label>$\rho$ &nbsp;<span class="val" id="rhoVal">28.0</span></label>
+            <input type="range" id="rhoInput" min="0" max="50" step="0.5" value="28">
+          </div>
+          <div class="field">
+            <label>$\beta$ &nbsp;<span class="val" id="betaVal">2.67</span></label>
+            <input type="range" id="betaInput" min="0.1" max="10" step="0.1" value="2.67">
+          </div>
+        </div>
+
+        <div class="field-group-title">Beginwaarden (A)</div>
+        <div class="param-grid">
+          <div class="field">
+            <label>$x_0$ &nbsp;<span class="val" id="x0Val">0.6</span></label>
+            <input type="range" id="x0Input" min="-20" max="20" step="0.1" value="0.6">
+          </div>
+          <div class="field">
+            <label>$y_0$ &nbsp;<span class="val" id="y0Val">0.6</span></label>
+            <input type="range" id="y0Input" min="-20" max="20" step="0.1" value="0.6">
+          </div>
+          <div class="field">
+            <label>$z_0$ &nbsp;<span class="val" id="z0Val">16.2</span></label>
+            <input type="range" id="z0Input" min="0" max="50" step="0.1" value="16.2">
+          </div>
+        </div>
+
+        <div class="field-group-title">Simulatie</div>
+        <div class="field">
+          <label>Snelheid &nbsp;<span class="val" id="speedLabel">1.0×</span></label>
+          <input type="range" id="speed" min="1" max="10" step="1" value="3">
+        </div>
+
+        <div class="btnrow">
+          <button class="act primary" id="playBtn">▶ Start</button>
+          <button class="act" id="resetBtn">↻ Herstart</button>
+        </div>
+
+        <div class="readout">
+          <div class="row"><span class="k">Tijd</span><span class="v" id="timeReadout">0.0</span></div>
+          <div class="row"><span class="k">Verschil</span><span class="v" id="diffReadout">0</span></div>
+          <div class="row" id="statusRow"><span class="k">Status</span><span class="v ok" id="statusReadout">Synchroon</span></div>
+          <div class="row" id="brokeRow"><span class="k">Afgeweken op</span><span class="v" id="brokeReadout">&mdash;</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>Gemaakt voor presentaties &middot; werkt volledig lokaal in de browser</footer>
+</div>
+
+<script>
+/* ============================================================
+   LORENZ 63 MODEL & CONFIGURATIE (REAL-TIME COMPUTATION)
+   ============================================================ */
+let sigma = 10, rho = 28, beta = 8/3;
+let x0 = 0.6, y0 = 0.6, z0 = 16.2;
+let epsExponent = 4;
+let eps = Math.pow(10, -epsExponent);
+let timeWindow = 20;
+let speedFactor = 3;
+let currentView = 'ts_combined';
+
+const dt = 0.008;
+let stateA = { x: x0, y: y0, z: z0 };
+let stateB = { x: x0 + eps, y: y0, z: z0 };
+
+let seriesA = [];
+let seriesB = [];
+let currentTime = 0;
+let brokeAt = null;
+let isPlaying = false;
+const diffThreshold = 8;
+const MAX_BUFFER = 5000;
+
+function lorenzDeriv(p){
+  return { 
+    dx: sigma * (p.y - p.x), 
+    dy: p.x * (rho - p.z) - p.y, 
+    dz: p.x * p.y - beta * p.z 
+  };
+}
+
+function lorenzStep(p, dt){
+  const k1 = lorenzDeriv(p);
+  const p2 = { x: p.x + dt/2 * k1.dx, y: p.y + dt/2 * k1.dy, z: p.z + dt/2 * k1.dz };
+  const k2 = lorenzDeriv(p2);
+  const p3 = { x: p.x + dt/2 * k2.dx, y: p.y + dt/2 * k2.dy, z: p.z + dt/2 * k2.dz };
+  const k3 = lorenzDeriv(p3);
+  const p4 = { x: p.x + dt * k3.dx, y: p.y + dt * k3.dy, z: p.z + dt * k3.dz };
+  const k4 = lorenzDeriv(p4);
+  return {
+    x: p.x + dt/6 * (k1.dx + 2*k2.dx + 2*k3.dx + k4.dx),
+    y: p.y + dt/6 * (k1.dy + 2*k2.dy + 2*k3.dy + k4.dy),
+    z: p.z + dt/6 * (k1.dz + 2*k2.dz + 2*k3.dz + k4.dz)
+  };
+}
+
+function resetSimulation(){
+  stateA = { x: x0, y: y0, z: z0 };
+  stateB = { x: x0 + eps, y: y0, z: z0 };
+  currentTime = 0;
+  seriesA = [{ t: 0, ...stateA }];
+  seriesB = [{ t: 0, ...stateB }];
+  brokeAt = null;
+}
+
+function stepSimulationRealtime(){
+  stateA = lorenzStep(stateA, dt);
+  stateB = lorenzStep(stateB, dt);
+  currentTime += dt;
+
+  seriesA.push({ t: currentTime, ...stateA });
+  seriesB.push({ t: currentTime, ...stateB });
+
+  if(seriesA.length > MAX_BUFFER){
+    seriesA.shift();
+    seriesB.shift();
+  }
+
+  const d = Math.abs(stateA.x - stateB.x);
+  if(brokeAt === null && d > diffThreshold){
+    brokeAt = currentTime;
+  }
+}
+
+/* ============================================================
+   DOM & CONTROLS
+   ============================================================ */
+const viewSelect = document.getElementById('viewSelect');
+const timeWindowInput = document.getElementById('timeWindow');
+const windowLabel = document.getElementById('windowLabel');
+const epsInput = document.getElementById('eps');
+const epsLabel = document.getElementById('epsLabel');
+const speedInput = document.getElementById('speed');
+const speedLabel = document.getElementById('speedLabel');
+const playBtn = document.getElementById('playBtn');
+const resetBtn = document.getElementById('resetBtn');
+
+const sigmaInput = document.getElementById('sigmaInput');
+const rhoInput = document.getElementById('rhoInput');
+const betaInput = document.getElementById('betaInput');
+const x0Input = document.getElementById('x0Input');
+const y0Input = document.getElementById('y0Input');
+const z0Input = document.getElementById('z0Input');
+
+const timeReadout = document.getElementById('timeReadout');
+const diffReadout = document.getElementById('diffReadout');
+const statusReadout = document.getElementById('statusReadout');
+const brokeReadout = document.getElementById('brokeReadout');
+const statusRow = document.getElementById('statusRow');
+const brokeRow = document.getElementById('brokeRow');
+const divergeLegend = document.getElementById('divergeLegend');
+
+const viewCombinedWrap = document.getElementById('viewCombinedWrap');
+const viewRowWrap = document.getElementById('viewRowWrap');
+const viewColWrap = document.getElementById('viewColWrap');
+
+const canvasCombined = document.getElementById('cCombined');
+const canvasRowA = document.getElementById('cRowA');
+const canvasRowB = document.getElementById('cRowB');
+const canvasColA = document.getElementById('cColA');
+const canvasColB = document.getElementById('cColB');
+
+const cCombined = canvasCombined.getContext('2d');
+const cRowA = canvasRowA.getContext('2d');
+const cRowB = canvasRowB.getContext('2d');
+const cColA = canvasColA.getContext('2d');
+const cColB = canvasColB.getContext('2d');
+
+function fitCanvasToParent(canvas) {
+  const parent = canvas.parentElement;
+  if (!parent) return;
+  const rect = parent.getBoundingClientRect();
+  if (canvas.width !== Math.floor(rect.width) || canvas.height !== Math.floor(rect.height)) {
+    canvas.width = Math.floor(rect.width);
+    canvas.height = Math.floor(rect.height);
+  }
+}
+
+function resizeAllCanvases() {
+  fitCanvasToParent(canvasCombined);
+  fitCanvasToParent(canvasRowA);
+  fitCanvasToParent(canvasRowB);
+  fitCanvasToParent(canvasColA);
+  fitCanvasToParent(canvasColB);
+  render();
+}
+
+window.addEventListener('resize', resizeAllCanvases);
+
+/* ============================================================
+   TEKENFUNCTIES
+   ============================================================ */
+function drawSingleTS(ctx, series, color, W, H, isSplit=false){
+  const pad = { l: 40, r: 15, t: 15, b: 25 };
+  const yMin = -25, yMax = 25;
+
+  ctx.clearRect(0, 0, W, H);
+  
+  const tMin = Math.max(0, currentTime - timeWindow);
+  const tMax = tMin + timeWindow;
+
+  ctx.strokeStyle = '#1a2338'; ctx.lineWidth = 1;
+  ctx.fillStyle = '#5b6685'; ctx.font = '10px IBM Plex Mono';
+  const step = timeWindow <= 10 ? 1 : (timeWindow <= 25 ? 2 : 5);
+  const startTick = Math.ceil(tMin / step) * step;
+
+  for(let t = startTick; t <= tMax; t += step){
+    const x = pad.l + ((t - tMin) / timeWindow) * (W - pad.l - pad.r);
+    ctx.beginPath(); ctx.moveTo(x, pad.t); ctx.lineTo(x, H - pad.b); ctx.stroke();
+    if(!isSplit || H > 140) ctx.fillText(t.toFixed(0), x - 4, H - pad.b + 14);
+  }
+  ctx.beginPath(); ctx.moveTo(pad.l, pad.t); ctx.lineTo(pad.l, H - pad.b); ctx.lineTo(W - pad.r, H - pad.b); ctx.stroke();
+
+  const xPx = t => pad.l + ((t - tMin) / timeWindow) * (W - pad.l - pad.r);
+  const yPx = v => pad.t + (1 - (v - yMin) / (yMax - yMin)) * (H - pad.t - pad.b);
+
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1.8; ctx.beginPath();
+  let started = false;
+  for(let i = 0; i < series.length; i++){
+    if(series[i].t < tMin) continue;
+    const x = xPx(series[i].t), y = yPx(series[i].x);
+    if(!started){ ctx.moveTo(x, y); started = true; } 
+    else { ctx.lineTo(x, y); }
+  }
+  ctx.stroke();
+}
+
+function drawCombinedTS(ctx, W, H){
+  drawSingleTS(ctx, seriesA, getComputedStyle(document.documentElement).getPropertyValue('--amber'), W, H);
+  
+  const pad = { l: 40, r: 15, t: 15, b: 25 };
+  const yMin = -25, yMax = 25;
+  const tMin = Math.max(0, currentTime - timeWindow);
+
+  const xPx = t => pad.l + ((t - tMin) / timeWindow) * (W - pad.l - pad.r);
+  const yPx = v => pad.t + (1 - (v - yMin) / (yMax - yMin)) * (H - pad.t - pad.b);
+
+  ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--teal');
+  ctx.lineWidth = 1.8; ctx.beginPath();
+  let started = false;
+  for(let i = 0; i < seriesB.length; i++){
+    if(seriesB[i].t < tMin) continue;
+    const x = xPx(seriesB[i].t), y = yPx(seriesB[i].x);
+    if(!started){ ctx.moveTo(x, y); started = true; } 
+    else { ctx.lineTo(x, y); }
+  }
+  ctx.stroke();
+
+  if(brokeAt !== null && brokeAt >= tMin && brokeAt <= (tMin + timeWindow)){
+    const x = xPx(brokeAt);
+    ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--red');
+    ctx.setLineDash([4, 4]); ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(x, pad.t); ctx.lineTo(x, H - pad.b); ctx.stroke();
+    ctx.setLineDash([]);
+  }
+}
+
+function drawPhaseTrail(ctx, series, W, H, color){
+  ctx.fillStyle = '#0d1322';
+  ctx.fillRect(0, 0, W, H);
+  
+  const scale = Math.min(W / 65, H / 65);
+  const offX = W / 2;
+  const offY = H * 0.88;
+
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1.2;
+  ctx.globalAlpha = 0.85;
+  ctx.beginPath();
+  
+  const startIdx = Math.max(0, series.length - 2500);
+  for(let i = startIdx; i < series.length; i++){
+    const px = offX + series[i].x * scale;
+    const py = offY - series[i].z * scale;
+    i === startIdx ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+  }
+  ctx.stroke();
+  ctx.globalAlpha = 1.0;
+}
+
+function render(){
+  if(currentView === 'ts_combined'){
+    drawCombinedTS(cCombined, canvasCombined.width, canvasCombined.height);
+  } else if(currentView === 'ts_row'){
+    drawSingleTS(cRowA, seriesA, getComputedStyle(document.documentElement).getPropertyValue('--amber'), canvasRowA.width, canvasRowA.height, true);
+    drawSingleTS(cRowB, seriesB, getComputedStyle(document.documentElement).getPropertyValue('--teal'), canvasRowB.width, canvasRowB.height, true);
+  } else if(currentView === 'ts_col'){
+    drawSingleTS(cColA, seriesA, getComputedStyle(document.documentElement).getPropertyValue('--amber'), canvasColA.width, canvasColA.height, true);
+    drawSingleTS(cColB, seriesB, getComputedStyle(document.documentElement).getPropertyValue('--teal'), canvasColB.width, canvasColB.height, true);
+  } else if(currentView === 'phase_combined'){
+    drawPhaseTrail(cCombined, seriesA, canvasCombined.width, canvasCombined.height, getComputedStyle(document.documentElement).getPropertyValue('--amber'));
+    drawPhaseTrail(cCombined, seriesB, canvasCombined.width, canvasCombined.height, getComputedStyle(document.documentElement).getPropertyValue('--teal'));
+  } else if(currentView === 'phase_row'){
+    drawPhaseTrail(cRowA, seriesA, canvasRowA.width, canvasRowA.height, getComputedStyle(document.documentElement).getPropertyValue('--amber'));
+    drawPhaseTrail(cRowB, seriesB, canvasRowB.width, canvasRowB.height, getComputedStyle(document.documentElement).getPropertyValue('--teal'));
+  } else if(currentView === 'phase_col'){
+    drawPhaseTrail(cColA, seriesA, canvasColA.width, canvasColA.height, getComputedStyle(document.documentElement).getPropertyValue('--amber'));
+    drawPhaseTrail(cColB, seriesB, canvasColB.width, canvasColB.height, getComputedStyle(document.documentElement).getPropertyValue('--teal'));
+  }
+
+  timeReadout.textContent = currentTime.toFixed(1);
+  const currentDiff = Math.abs(stateA.x - stateB.x);
+  diffReadout.textContent = currentDiff ? currentDiff.toExponential(2) : '0';
+
+  if(brokeAt !== null && currentTime >= brokeAt){
+    statusReadout.textContent = 'Gedivergeerd';
+    statusReadout.className = 'v warn';
+  } else {
+    statusReadout.textContent = 'Synchroon';
+    statusReadout.className = 'v ok';
+  }
+  brokeReadout.textContent = brokeAt === null ? '—' : brokeAt.toFixed(1);
+}
+
+/* ============================================================
+   ANIMATIELOOP & EVENT LISTENERS
+   ============================================================ */
+function animLoop(){
+  if(!isPlaying) return;
+  
+  const stepsPerFrame = Math.round(speedFactor * 2);
+  for(let i = 0; i < stepsPerFrame; i++){
+    stepSimulationRealtime();
+  }
+  
+  render();
+  requestAnimationFrame(animLoop);
+}
+
+function updateViewUI(){
+  viewCombinedWrap.style.display = currentView.endsWith('_combined') ? 'block' : 'none';
+  viewRowWrap.style.display = currentView.endsWith('_row') ? 'flex' : 'none';
+  viewColWrap.style.display = currentView.endsWith('_col') ? 'flex' : 'none';
+
+  const isTS = currentView.startsWith('ts_');
+  statusRow.style.display = isTS ? '' : 'none';
+  brokeRow.style.display = isTS ? '' : 'none';
+  divergeLegend.style.display = (isTS && currentView === 'ts_combined') ? '' : 'none';
+
+  setTimeout(resizeAllCanvases, 10);
+}
+
+viewSelect.addEventListener('change', (e) => {
+  currentView = e.target.value;
+  updateViewUI();
+});
+
+playBtn.addEventListener('click', () => {
+  isPlaying = !isPlaying;
+  playBtn.textContent = isPlaying ? '⏸ Pauze' : '▶ Start';
+  if(isPlaying) requestAnimationFrame(animLoop);
+});
+
+resetBtn.addEventListener('click', () => {
+  isPlaying = false;
+  playBtn.textContent = '▶ Start';
+  resetSimulation();
+  render();
+});
+
+epsInput.addEventListener('input', (e) => {
+  epsExponent = +e.target.value;
+  eps = Math.pow(10, -epsExponent);
+  epsLabel.textContent = '10⁻' + epsExponent;
+  resetSimulation(); render();
+});
+
+timeWindowInput.addEventListener('input', (e) => {
+  timeWindow = +e.target.value;
+  windowLabel.textContent = timeWindow;
+  render();
+});
+
+speedInput.addEventListener('input', (e) => {
+  speedFactor = +e.target.value;
+  speedLabel.textContent = (speedFactor / 3).toFixed(1) + '×';
+});
+
+sigmaInput.addEventListener('input', (e) => {
+  sigma = parseFloat(e.target.value);
+  document.getElementById('sigmaVal').textContent = sigma.toFixed(1);
+  resetSimulation(); render();
+});
+rhoInput.addEventListener('input', (e) => {
+  rho = parseFloat(e.target.value);
+  document.getElementById('rhoVal').textContent = rho.toFixed(1);
+  resetSimulation(); render();
+});
+betaInput.addEventListener('input', (e) => {
+  beta = parseFloat(e.target.value);
+  document.getElementById('betaVal').textContent = beta.toFixed(2);
+  resetSimulation(); render();
+});
+
+x0Input.addEventListener('input', (e) => {
+  x0 = parseFloat(e.target.value);
+  document.getElementById('x0Val').textContent = x0.toFixed(1);
+  resetSimulation(); render();
+});
+y0Input.addEventListener('input', (e) => {
+  y0 = parseFloat(e.target.value);
+  document.getElementById('y0Val').textContent = y0.toFixed(1);
+  resetSimulation(); render();
+});
+z0Input.addEventListener('input', (e) => {
+  z0 = parseFloat(e.target.value);
+  document.getElementById('z0Val').textContent = z0.toFixed(1);
+  resetSimulation(); render();
+});
+
+resetSimulation();
+updateViewUI();
+</script>
+</body>
+</html>
